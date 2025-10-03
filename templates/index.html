@@ -247,6 +247,45 @@
       scene.add(damage);
     }
 
+    // Add a button to launch the rocket
+    const launchButton = document.createElement('button');
+    launchButton.textContent = 'Launch Rocket';
+    launchButton.style.marginTop = '8px';
+    document.getElementById('ui').appendChild(launchButton);
+
+    let rocket = null;
+    let rocketLaunched = false;
+
+    // Function to create and launch the rocket
+    function launchRocket() {
+      if (rocketLaunched) return; // Prevent multiple launches
+
+      // Create the rocket
+      const rocketGeom = new THREE.CylinderGeometry(100, 100, 400, 32); // Increased size
+      const rocketMat = new THREE.MeshPhongMaterial({ color: 0xffffff }); // Changed to white
+      rocket = new THREE.Mesh(rocketGeom, rocketMat);
+      rocket.position.set(0, 6371 + 200, 0); // Start slightly above Earth's surface
+      scene.add(rocket);
+
+      rocketLaunched = true;
+    }
+
+    launchButton.addEventListener('click', launchRocket);
+
+    // Function to check rocket collision with the asteroid
+    function checkRocketCollision() {
+      if (!rocket) return;
+
+      const distanceToAsteroid = rocket.position.distanceTo(asteroid.position);
+      if (distanceToAsteroid <= 300) { // Asteroid's radius
+        scene.remove(rocket); // Remove the rocket
+        scene.remove(asteroid); // Destroy the asteroid
+        createExplosion(asteroid.position); // Trigger explosion at the asteroid's position
+        rocket = null;
+        rocketLaunched = false;
+      }
+    }
+
     // Animation state
     let running = true;
     let t0 = performance.now() / 1000; // seconds
@@ -282,6 +321,13 @@
         markDamageOnEarth(collisionPoint); // Mark damage on Earth's surface
 
         scene.remove(asteroid); // Remove asteroid from the scene
+      }
+
+      // Update rocket position if launched
+      if (rocket) {
+        const direction = new THREE.Vector3().subVectors(asteroid.position, rocket.position).normalize();
+        rocket.position.add(direction.multiplyScalar(100)); // Reduced speed even more
+        checkRocketCollision();
       }
 
       // Moon orbit mean motion
