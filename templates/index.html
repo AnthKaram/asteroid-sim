@@ -37,7 +37,7 @@
     <input id="M0" type="range" min="0" max="360" step="1" value="0">
 
     <label>How fast time goes</label>
-    <input id="timeScale" type="range" min="0.1" max="20" step="0.1" value="3">
+    <input id="timeScale" type="range" min="0.1" max="100" step="0.1" value="50">
 
     <button id="toggle">Pause</button>
     <div id="stats"></div>
@@ -72,7 +72,7 @@
     scene.add(earth);
 
     // Asteroid
-    const asteroidGeom = new THREE.SphereGeometry(150, 24, 24);
+    const asteroidGeom = new THREE.SphereGeometry(300, 24, 24);
     const asteroidMat = new THREE.MeshPhongMaterial({ color: 0xffa640, emissive: 0x352100 });
     const asteroid = new THREE.Mesh(asteroidGeom, asteroidMat);
     scene.add(asteroid);
@@ -192,18 +192,24 @@
       const { a, e, i, Omega, omega, M0, timeScale } = getElements();
 
       // Asteroid mean motion n = sqrt(mu / a^3)
-      const nAst = Math.sqrt(muEarth / (a*a*a));
+      const nAst = Math.sqrt(muEarth / (a * a * a));
       const M_ast = M0 + nAst * (t - t0) * timeScale;
-      const E_ast = solveKepler(M_ast % (2*Math.PI), e);
+      const E_ast = solveKepler(M_ast % (2 * Math.PI), e);
 
       // Asteroid position perifocal
       const x_pf_ast = a * (Math.cos(E_ast) - e);
-      const y_pf_ast = a * (Math.sqrt(1 - e*e) * Math.sin(E_ast));
+      const y_pf_ast = a * (Math.sqrt(1 - e * e) * Math.sin(E_ast));
       const r_pf_ast = new THREE.Vector3(x_pf_ast, y_pf_ast, 0);
 
       // Asteroid position ECI
       const r_eci_ast = rotatePerifocalToECI(r_pf_ast, i, Omega, omega);
       asteroid.position.copy(r_eci_ast);
+
+      // Check for collision with Earth
+      const distanceToEarth = r_eci_ast.length();
+      if (distanceToEarth <= 6371) { // Earth's radius in km
+        earth.material.color.set(0xff0000); // Change Earth to red
+      }
 
       // Moon orbit mean motion
       const aMoon = moonOrbit.a;
@@ -212,13 +218,13 @@
       const OMoon = moonOrbit.Omega;
       const wMoon = moonOrbit.omega;
       const M0Moon = moonOrbit.M0;
-      const nMoon = Math.sqrt(muEarth / (aMoon*aMoon*aMoon));
+      const nMoon = Math.sqrt(muEarth / (aMoon * aMoon * aMoon));
       const M_moon = M0Moon + nMoon * (t - t0);
-      const E_moon = solveKepler(M_moon % (2*Math.PI), eMoon);
+      const E_moon = solveKepler(M_moon % (2 * Math.PI), eMoon);
 
       // Moon position perifocal
       const x_pf_moon = aMoon * (Math.cos(E_moon) - eMoon);
-      const y_pf_moon = aMoon * (Math.sqrt(1 - eMoon*eMoon) * Math.sin(E_moon));
+      const y_pf_moon = aMoon * (Math.sqrt(1 - eMoon * eMoon) * Math.sin(E_moon));
       const r_pf_moon = new THREE.Vector3(x_pf_moon, y_pf_moon, 0);
 
       // Moon position ECI
@@ -233,11 +239,11 @@
       stats.textContent =
         `Asteroid orbit:\n` +
         `a=${a} km  e=${e}  i=${parseFloat(ui.inc.value)}°\n` +
-        `Ω=${parseFloat(ui.raan.value)}°  ω=${parseFloat(ui.argp.value)}°  M=${(M_ast*180/Math.PI % 360).toFixed(1)}°\n` +
+        `Ω=${parseFloat(ui.raan.value)}°  ω=${parseFloat(ui.argp.value)}°  M=${(M_ast * 180 / Math.PI % 360).toFixed(1)}°\n` +
         `r=${rmag} km  n=${nAst.toFixed(6)} rad/s  timeScale=${timeScale}x\n\n` +
         `Moon orbit:\n` +
-        `a=${aMoon} km  e=${eMoon.toFixed(4)}  i=${(iMoon*180/Math.PI).toFixed(2)}°\n` +
-        `M=${(M_moon*180/Math.PI % 360).toFixed(1)}°`;
+        `a=${aMoon} km  e=${eMoon.toFixed(4)}  i=${(iMoon * 180 / Math.PI).toFixed(2)}°\n` +
+        `M=${(M_moon * 180 / Math.PI % 360).toFixed(1)}°`;
       
       renderer.render(scene, camera);
     }
