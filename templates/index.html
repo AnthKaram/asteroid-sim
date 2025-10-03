@@ -54,7 +54,9 @@
 
     // Earth placeholder (radius ~6371 km)
     const earthGeom = new THREE.SphereGeometry(6371, 64, 64);
-    const earthMat = new THREE.MeshPhongMaterial({ color: 0x2a5fa5, shininess: 10, emissive: 0x0a1c33 });
+    const earthTexture = new THREE.TextureLoader().load('https://upload.wikimedia.org/wikipedia/commons/c/c3/Solarsystemscope_texture_2k_earth_daymap.jpg');
+    const earthMat = new THREE.MeshPhongMaterial({ map: earthTexture });
+
     const earth = new THREE.Mesh(earthGeom, earthMat);
     scene.add(earth);
 
