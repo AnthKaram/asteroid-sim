@@ -238,6 +238,15 @@
       animateExplosion();
     }
 
+    // Function to mark the Earth's surface as damaged
+    function markDamageOnEarth(collisionPoint) {
+      const damageMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 }); // Black material for damage
+      const damageGeom = new THREE.SphereGeometry(500, 32, 32); // Damage area size
+      const damage = new THREE.Mesh(damageGeom, damageMaterial);
+      damage.position.copy(collisionPoint);
+      scene.add(damage);
+    }
+
     // Animation state
     let running = true;
     let t0 = performance.now() / 1000; // seconds
@@ -267,9 +276,12 @@
       // Check for collision with Earth
       const distanceToEarth = r_eci_ast.length();
       if (distanceToEarth <= 6371) { // Earth's radius in km
-        scene.remove(earth); // Remove Earth from the scene
+        const collisionPoint = r_eci_ast.clone().normalize().multiplyScalar(6371); // Collision point on Earth's surface
+
+        createExplosion(collisionPoint); // Trigger explosion at the collision point
+        markDamageOnEarth(collisionPoint); // Mark damage on Earth's surface
+
         scene.remove(asteroid); // Remove asteroid from the scene
-        createExplosion(earth.position); // Trigger explosion at Earth's position
       }
 
       // Moon orbit mean motion
