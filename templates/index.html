@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Asteroid Orbit Animation</title>
+  <style>
+    body { margin: 0; font-family: sans-serif; background: #0b0f1a; color: #eaeef3; }
+    #ui { position: absolute; top: 10px; left: 10px; background: rgba(20,25,35,0.9); padding: 12px; border-radius: 8px; max-width: 320px; }
+    #ui label { display: block; margin: 8px 0 4px; font-size: 12px; color: #c9d3e7; }
+    #ui input[type=range], #ui input[type=number] { width: 100%; }
+    #stats { margin-top: 10px; font-size: 12px; color: #9fb3d1; white-space: pre-wrap; }
+    canvas { display: block; }
+    button { margin-top: 8px; width: 100%; padding: 8px; background: #173b6b; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #1f4e8f; }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <div style="font-weight:600; margin-bottom:8px;">Asteroid Orbit Controls</div>
+    <label>Semi-major axis a (km)</label>
+    <input id="a" type="range" min="7000" max="60000" step="100" value="12000">
+    <label>Eccentricity e</label>
+    <input id="e" type="range" min="0" max="0.9" step="0.01" value="0.3">
+    <label>Inclination i (deg)</label>
+    <input id="inc" type="range" min="0" max="90" step="1" value="15">
+    <label>RAAN Ω (deg)</label>
+    <input id="raan" type="range" min="0" max="360" step="1" value="40">
+    <label>Argument of periapsis ω (deg)</label>
+    <input id="argp" type="range" min="0" max="360" step="1" value="20">
+    <label>Initial mean anomaly M₀ (deg)</label>
+    <input id="M0" type="range" min="0" max="360" step="1" value="0">
+    <label>Time scale (x real)</label>
+    <input id="timeScale" type="range" min="0.1" max="20" step="0.1" value="3">
+    <button id="toggle">Pause</button>
+    <div id="stats"></div>
+  </div>
+
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script>
+    // Scene setup
+    const scene = new THREE.Scene();
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 1e9);
+    camera.position.set(0, 2.5e4, 4.5e4);
+
+    // Lights
+    const light = new THREE.DirectionalLight(0xffffff, 1.0);
+    light.position.set(1, 1, 0.5).multiplyScalar(1e6);
+    scene.add(light);
+    scene.add(new THREE.AmbientLight(0x404040, 0.8));
+
+    // Earth placeholder (radius ~6371 km)
+    const earthGeom = new THREE.SphereGeometry(6371, 64, 64);
+    const earthMat = new THREE.MeshPhongMaterial({ color: 0x2a5fa5, shininess: 10, emissive: 0x0a1c33 });
+    const earth = new THREE.Mesh(earthGeom, earthMat);
+    scene.add(earth);
+
+    // Asteroid
+    const asteroidGeom = new THREE.SphereGeometry(150, 24, 24);
+    const asteroidMat = new THREE.MeshPhongMaterial({ color: 0xffa640, emissive: 0x352100 });
+    const asteroid = new THREE.Mesh(asteroidGeom, asteroidMat);
+    scene.add(asteroid);
+
+    // Orbit path line
+    const orbitMaterial = new THREE.LineBasicMaterial({ color: 0x8fd3ff });
+    let orbitLine = new THREE.Line(new THREE.BufferGeometry(), orbitMaterial);
+    scene.add(orbitLine);
+
+    // UI elements
+    const ui = ["a","e","inc","raan","argp","M0","timeScale"].reduce((o,id)=>({ ...o, [id]: document.getElementById(id) }), {});
+    const stats = document.getElementById("stats");
+    const toggleBtn = document.getElementById("toggle");
+
+    // Constants
+    const muEarth = 3.986004418e5; // km^3/s^2, Earth's gravitational parameter
+
+    // Utility: degrees to radians
+    const d2r = (d) => d * Math.PI / 180;
+
+    // Solve Kepler's equation for E given M and e (Newton-Raphson)
+    function solveKepler(M, e) {
+      let E = e < 0.8 ? M : Math.PI; // initial guess
+      for (let k = 0; k < 20; k++) {
+        const f = E - e * Math.sin(E) - M;
+        const fp = 1 - e * Math.cos(E);
+        E = E - f / fp;
+      }
+      return E;
+    }
+
+    // Rotate perifocal to ECI using i, Ω, ω
+    function rotatePerifocalToECI(vecPF, i, Omega, omega) {
+      const ci = Math.cos(i), si = Math.sin(i);
+      const cO = Math.cos(Omega), sO = Math.sin(Omega);
+      const co = Math.cos(omega), so = Math.sin(omega);
+
+      // Rotation matrix R = R3(Omega) * R1(i) * R3(omega)
+      const R = [
+        cO*co - sO*so*ci, -cO*so - sO*co*ci, sO*si,
+        sO*co + cO*so*ci, -sO*so + cO*co*ci, -cO*si,
+        so*si,             co*si,             ci
+      ];
+      return new THREE.Vector3(
+        R[0]*vecPF.x + R[1]*vecPF.y + R[2]*vecPF.z,
+        R[3]*vecPF.x + R[4]*vecPF.y + R[5]*vecPF.z,
+        R[6]*vecPF.x + R[7]*vecPF.y + R[8]*vecPF.z
+      );
+    }
+
+    // Build orbit geometry for visualization
+    function buildOrbitGeometry(a, e, i, Omega, omega) {
+      const points = [];
+      const steps = 512;
+      for (let s = 0; s <= steps; s++) {
+        const M = 2 * Math.PI * (s / steps);
+        const E = solveKepler(M, e);
+        const x_pf = a * (Math.cos(E) - e);
+        const y_pf = a * (Math.sqrt(1 - e*e) * Math.sin(E));
+        const r_pf = new THREE.Vector3(x_pf, y_pf, 0);
+        const r_eci = rotatePerifocalToECI(r_pf, i, Omega, omega);
+        points.push(r_eci);
+      }
+      const geom = new THREE.BufferGeometry().setFromPoints(points);
+      return geom;
+    }
+
+    // Read UI as current orbital elements
+    function getElements() {
+      const a = parseFloat(ui.a.value);              // km
+      const e = parseFloat(ui.e.value);
+      const i = d2r(parseFloat(ui.inc.value));
+      const Omega = d2r(parseFloat(ui.raan.value));
+      const omega = d2r(parseFloat(ui.argp.value));
+      const M0 = d2r(parseFloat(ui.M0.value));
+      const timeScale = parseFloat(ui.timeScale.value);
+      return { a, e, i, Omega, omega, M0, timeScale };
+    }
+
+    // Update orbit line when elements change
+    function refreshOrbitLine() {
+      const { a, e, i, Omega, omega } = getElements();
+      orbitLine.geometry.dispose();
+      orbitLine.geometry = buildOrbitGeometry(a, e, i, Omega, omega);
+    }
+
+    // Animation state
+    let running = true;
+    let t0 = performance.now() / 1000; // seconds
+
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+      if (!running) return;
+
+      const t = performance.now() / 1000;
+      const { a, e, i, Omega, omega, M0, timeScale } = getElements();
+
+      // Mean motion n = sqrt(mu / a^3)
+      const n = Math.sqrt(muEarth / (a*a*a));
+      // Advance mean anomaly: M(t) = M0 + n * (t - t0) * timeScale
+      const M = M0 + n * (t - t0) * timeScale;
+      const E = solveKepler(M % (2*Math.PI), e);
+
+      // Position in perifocal frame
+      const x_pf = a * (Math.cos(E) - e);
+      const y_pf = a * (Math.sqrt(1 - e*e) * Math.sin(E));
+      const r_pf = new THREE.Vector3(x_pf, y_pf, 0);
+
+      // Convert to ECI and set asteroid position
+      const r_eci = rotatePerifocalToECI(r_pf, i, Omega, omega);
+      asteroid.position.copy(r_eci);
+
+      // Face camera gently
+      camera.lookAt(earth.position);
+
+      // HUD stats
+      const rmag = r_eci.length().toFixed(1);
+      stats.textContent =
+        `a=${a} km  e=${e}  i=${parseFloat(ui.inc.value)}°\n` +
+        `Ω=${parseFloat(ui.raan.value)}°  ω=${parseFloat(ui.argp.value)}°  M=${(M*180/Math.PI % 360).toFixed(1)}°\n` +
+        `r=${rmag} km  n=${n.toFixed(6)} rad/s  timeScale=${timeScale}x`;
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // UI interactions
+    ["a","e","inc","raan","argp","M0"].forEach(id => {
+      ui[id].addEventListener("input", refreshOrbitLine);
+    });
+    refreshOrbitLine();
+
+    toggleBtn.addEventListener("click", () => {
+      running = !running;
+      toggleBtn.textContent = running ? "Pause" : "Resume";
+      if (running) t0 = performance.now() / 1000;
+    });
+
+    // Resize handling
+    window.addEventListener("resize", () => {
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+    });
+  </script>
+</body>
+</html>
