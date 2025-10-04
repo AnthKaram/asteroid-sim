@@ -9,16 +9,18 @@ def calculate_kinetic_energy(mass, velocity):
 @app.route("/")
 def index():
     mass = 1000  # in kilograms
-    velocity = request.args.get("velocity", default=11, type=float)  # Default velocity in km/s
+    velocity = 11  # Default velocity in km/s (minimum value)
     kinetic_energy = calculate_kinetic_energy(mass, velocity)
-    return render_template("index.html", kinetic_energy=kinetic_energy)
+    kinetic_energy_sci = "{:.2e}".format(kinetic_energy)  # Format in scientific notation
+    return render_template("index.html", kinetic_energy=kinetic_energy_sci)
 
 @app.route("/update-kinetic-energy")
 def update_kinetic_energy():
     mass = 1000  # in kilograms
     velocity = request.args.get("velocity", type=float)  # Velocity in km/s
     kinetic_energy = calculate_kinetic_energy(mass, velocity)
-    return jsonify({"kinetic_energy": kinetic_energy})
+    kinetic_energy_sci = "{:.2e}".format(kinetic_energy)  # Format in scientific notation
+    return jsonify({"kinetic_energy": kinetic_energy_sci})
 
 if __name__ == "__main__":
     app.run(debug=True)
