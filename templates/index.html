@@ -382,20 +382,24 @@
       // Animation state
       let running = true;
       let t0 = performance.now() / 1000; // seconds
+      let lastT = t0;
+      let simTime = 0; // simulation time in seconds
 
       // Animation loop
       function animate() {
         requestAnimationFrame(animate);
-        if (!running) return;
-
         const t = performance.now() / 1000;
         const { a, e, i, Omega, omega, M0, timeScale } = getElements();
+        // Scale timeScale for a more dramatic effect: map slider [0.01, 500] to speed [0.01, 100]
+        let scaledTime = Math.max(0.01, Math.pow(timeScale, 1.2));
+        if (running) {
+          simTime += (t - lastT) * scaledTime;
+        }
+        lastT = t;
         // Asteroid mean motion n = sqrt(mu / a^3)
         const nAst = Math.sqrt(muEarth / (a * a * a));
-  // Scale timeScale for a more dramatic effect: map slider [0.01, 500] to speed [0.01, 100]
-  let scaledTime = Math.max(0.01, Math.pow(timeScale, 1.2));
-  // Only apply scaledTime to the time evolution, not to M0
-  const M_ast = M0 + nAst * ((t - t0) * scaledTime);
+        // Only apply simTime to the time evolution, not to M0
+        const M_ast = M0 + nAst * simTime;
         const E_ast = solveKepler(M_ast % (2 * Math.PI), e);
 
         // Asteroid position perifocal
@@ -431,17 +435,17 @@
           checkRocketCollision();
         }
 
-  // Moon orbit mean motion
-  const aMoon = moonOrbit.a;
-  const eMoon = moonOrbit.e;
-  const iMoon = moonOrbit.i;
-  const OMoon = moonOrbit.Omega;
-  const wMoon = moonOrbit.omega;
-  const M0Moon = moonOrbit.M0;
-  const nMoon = Math.sqrt(muEarth / (aMoon * aMoon * aMoon));
-  // Use the same scaledTime for the Moon's orbit
-  const M_moon = M0Moon + nMoon * ((t - t0) * scaledTime);
-  const E_moon = solveKepler(M_moon % (2 * Math.PI), eMoon);
+        // Moon orbit mean motion
+        const aMoon = moonOrbit.a;
+        const eMoon = moonOrbit.e;
+        const iMoon = moonOrbit.i;
+        const OMoon = moonOrbit.Omega;
+        const wMoon = moonOrbit.omega;
+        const M0Moon = moonOrbit.M0;
+        const nMoon = Math.sqrt(muEarth / (aMoon * aMoon * aMoon));
+        // Use the same scaledTime for the Moon's orbit
+        const M_moon = M0Moon + nMoon * ((t - t0) * scaledTime);
+        const E_moon = solveKepler(M_moon % (2 * Math.PI), eMoon);
 
         // Moon position perifocal
         const x_pf_moon = aMoon * (Math.cos(E_moon) - eMoon);
@@ -487,7 +491,6 @@
       toggleBtn.addEventListener("click", () => {
         running = !running;
         toggleBtn.textContent = running ? "Pause" : "Resume";
-        if (running) t0 = performance.now() / 1000;
       });
 
       // Resize handling
