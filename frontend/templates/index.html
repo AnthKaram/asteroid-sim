@@ -3,7 +3,43 @@
   <head>
     <meta charset="UTF-8" />
     <title>Asteroid and Moon Orbit Animation</title>
-    <link rel="stylesheet" href="/static/styles.css" />
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+      }
+      #ui {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 15px;
+        border-radius: 5px;
+        max-width: 300px;
+        z-index: 100;
+      }
+      #ui label {
+        display: block;
+        margin-top: 10px;
+        font-size: 14px;
+      }
+      #ui input {
+        width: 100%;
+        margin-top: 5px;
+      }
+      #ui button {
+        margin-top: 10px;
+        padding: 5px 10px;
+        width: 100%;
+      }
+      #stats {
+        margin-top: 10px;
+        font-size: 12px;
+        white-space: pre-line;
+      }
+    </style>
   </head>
   <body>
     <div id="ui">
@@ -27,14 +63,25 @@
       <label>How tilted is the orbit?</label>
       <input id="inc" type="range" min="0" max="90" step="1" value="15" />
 
-      <label>Orbit’s turning direction</label>
+      <label>Orbit's turning direction</label>
       <input id="raan" type="range" min="0" max="360" step="1" value="40" />
 
-      <label>Where’s the closest point?</label>
+      <label>Where's the closest point?</label>
       <input id="argp" type="range" min="0" max="360" step="1" value="20" />
 
       <label>Start position on orbit</label>
       <input id="M0" type="range" min="0" max="360" step="1" value="0" />
+
+      <label>Mass of Asteroid (<span id="massDisplay">1.0×10⁶</span> kg)</label>
+      <input
+        id="mass"
+        type="range"
+        min="3"
+        max="9"
+        step="0.1"
+        value="6"
+        oninput="updateMassDisplay(this.value)"
+      />
 
       <label>Speed of Simulation (<span id="timeScaleDisplay">x1</span>)</label>
       <input
@@ -47,7 +94,7 @@
       />
 
       <label>Kinetic Energy of Asteroid:</label>
-      <div id="kinetic-energy">{{ kinetic_energy }} Joules</div>
+      <div id="kinetic-energy">0 Joules</div>
 
       <label>Asteroid Velocity (km/s):</label>
       <input
@@ -62,11 +109,12 @@
       <span id="velocity-value">11</span> km/s
 
       <button id="toggle">Pause</button>
+      <button id="launch">Launch Rocket</button>
       <div id="stats"></div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
           const timeScaleInput = document.getElementById('timeScale');
@@ -76,6 +124,27 @@
             timeScaleDisplay.textContent = `x${timeScaleInput.value}`;
           });
         });
+
+      function updateMassDisplay(value) {
+        const massValue = Math.pow(10, parseFloat(value));
+        const display = document.getElementById('massDisplay');
+        if (massValue >= 1000000) {
+          display.textContent = `${(massValue / 1000000).toFixed(1)}×10⁶`;
+        } else if (massValue >= 1000) {
+          display.textContent = `${(massValue / 1000).toFixed(1)}×10³`;
+        } else {
+          display.textContent = massValue.toFixed(0);
+        }
+      }
+
+      function updateVelocity(value) {
+        document.getElementById('velocity-value').textContent = value;
+        // Calculate kinetic energy: KE = 0.5 * m * v^2
+        const mass = Math.pow(10, parseFloat(document.getElementById('mass').value));
+        const velocity = parseFloat(value) * 1000; // Convert to m/s
+        const kineticEnergy = 0.5 * mass * velocity * velocity;
+        document.getElementById('kinetic-energy').textContent = `${kineticEnergy.toExponential(2)} Joules`;
+      }
     </script>
     <script>
       // Scene setup
@@ -111,13 +180,73 @@
       scene.add(earth);
 
       // Asteroid
-      const asteroidGeom = new THREE.SphereGeometry(300, 24, 24);
-      const asteroidMat = new THREE.MeshPhongMaterial({
-        color: 0xffa640,
-        emissive: 0x352100,
-      });
-      const asteroid = new THREE.Mesh(asteroidGeom, asteroidMat);
+      let asteroid = createAsteroid(1e6); // Default mass of 1e6 kg
       scene.add(asteroid);
+
+      // Function to create a random asteroid shape
+      function createRandomAsteroidGeometry() {
+        const geometry = new THREE.IcosahedronGeometry(300, 1);
+        const vertices = geometry.attributes.position.array;
+        
+        // Randomly displace vertices to create irregular shape
+        for (let i = 0; i < vertices.length; i += 3) {
+          const displacement = 0.3 + Math.random() * 0.7; // 0.3 to 1.0 scale
+          vertices[i] *= displacement;
+          vertices[i + 1] *= displacement;
+          vertices[i + 2] *= displacement;
+        }
+        
+        geometry.computeVertexNormals();
+        return geometry;
+      }
+
+      // Function to create asteroid based on mass
+      function createAsteroid(mass) {
+        let asteroidGeom;
+        
+        if (mass < 1e6) {
+          // Create random shape for small masses
+          asteroidGeom = createRandomAsteroidGeometry();
+        } else {
+          // Use sphere for larger masses
+          asteroidGeom = new THREE.SphereGeometry(300, 24, 24);
+        }
+        
+        const asteroidMat = new THREE.MeshPhongMaterial({
+          color: 0xffa640,
+          emissive: 0x352100,
+        });
+        return new THREE.Mesh(asteroidGeom, asteroidMat);
+      }
+
+      // Function to update asteroid based on mass
+      function updateAsteroidMass(mass) {
+        scene.remove(asteroid);
+        asteroid = createAsteroid(mass);
+        scene.add(asteroid);
+      }
+
+      // Function to deform asteroid on impact
+      function deformAsteroid() {
+        // Create a deformed geometry by scaling the asteroid
+        const geometry = asteroid.geometry.clone();
+        const vertices = geometry.attributes.position.array;
+        
+        // Apply deformation by scaling along different axes
+        for (let i = 0; i < vertices.length; i += 3) {
+          // Flatten the asteroid on impact
+          vertices[i] *= 1.5;   // X axis
+          vertices[i + 1] *= 0.5; // Y axis
+          vertices[i + 2] *= 1.2; // Z axis
+        }
+        
+        geometry.computeVertexNormals();
+        asteroid.geometry.dispose();
+        asteroid.geometry = geometry;
+        
+        // Change color to indicate damage
+        asteroid.material.color.set(0x8B4513); // Brown color for impact
+      }
 
       // Moon
       const moonRadius = 1737; // km approx radius of Moon
@@ -135,12 +264,13 @@
       scene.add(orbitLine);
 
       // UI elements
-      const ui = ["a", "e", "inc", "raan", "argp", "M0", "timeScale"].reduce(
+      const ui = ["a", "e", "inc", "raan", "argp", "M0", "timeScale", "mass", "velocity"].reduce(
         (o, id) => ({ ...o, [id]: document.getElementById(id) }),
         {}
       );
       const stats = document.getElementById("stats");
       const toggleBtn = document.getElementById("toggle");
+      const launchBtn = document.getElementById("launch");
 
       // Constants
       const muEarth = 3.986004418e5; // km^3/s^2, Earth's gravitational parameter
@@ -224,9 +354,10 @@
         const Omega = d2r(parseFloat(ui.raan.value));
         const omega = d2r(parseFloat(ui.argp.value));
         const M0 = d2r(parseFloat(ui.M0.value));
+        const mass = Math.pow(10, parseFloat(ui.mass.value)); // Convert from logarithmic scale
         // Only use timeScale for speed, not for initial position
         const timeScale = parseFloat(ui.timeScale.value);
-        return { a, e, i, Omega, omega, M0, timeScale };
+        return { a, e, i, Omega, omega, M0, mass, timeScale };
       }
 
       // Update orbit line when elements change
@@ -234,7 +365,6 @@
         const { a, e, i, Omega, omega } = getElements();
         orbitLine.geometry.dispose();
         orbitLine.geometry = buildOrbitGeometry(a, e, i, Omega, omega);
-        refreshMoonOrbitLine();
       }
 
       // Update the explosion to expand particles spherically and remove the asteroid
@@ -314,18 +444,15 @@
         scene.add(damage);
       }
 
-      // Add a button to launch the rocket
-      const launchButton = document.createElement("button");
-      launchButton.textContent = "Launch Rocket";
-      launchButton.style.marginTop = "8px";
-      document.getElementById("ui").appendChild(launchButton);
-
       let rocket = null;
       let rocketLaunched = false;
+      let asteroidDeflected = false;
+      let asteroidImpacted = false;
+      let deflectionStartTime = 0;
 
       // Function to create and launch the rocket
       function launchRocket() {
-        if (rocketLaunched) return; // Prevent multiple launches
+        if (rocketLaunched || asteroidDeflected || asteroidImpacted) return; // Prevent multiple launches
 
         // Create the rocket
         const rocketGeom = new THREE.CylinderGeometry(100, 100, 400, 32); // Increased size
@@ -337,22 +464,62 @@
         rocketLaunched = true;
       }
 
-      launchButton.addEventListener("click", launchRocket);
+      launchBtn.addEventListener("click", launchRocket);
+
+      // Function to deflect the asteroid when rocket hits it
+      function deflectAsteroid() {
+        // Mark the asteroid as deflected
+        asteroidDeflected = true;
+        deflectionStartTime = performance.now() / 1000;
+        
+        // Create a small explosion at impact point
+        createExplosion(asteroid.position);
+        
+        // Remove the rocket
+        scene.remove(rocket);
+        rocket = null;
+        rocketLaunched = false;
+        
+        // Change asteroid color to indicate deflection
+        asteroid.material.color.set(0x00ff00); // Green to indicate deflection
+        asteroid.material.emissive.set(0x003300);
+        
+        // Deform the asteroid on impact
+        deformAsteroid();
+        
+        // Update orbit parameters to deflect the asteroid into a U-shaped orbit
+        // Increase eccentricity to create a more parabolic trajectory
+        const currentE = parseFloat(ui.e.value);
+        const newE = Math.min(0.99, currentE + 0.5); // Increase eccentricity significantly
+        
+        // Update UI to reflect new orbit
+        ui.e.value = newE;
+        
+        // Also increase semi-major axis to make it leave the frame
+        const currentA = parseFloat(ui.a.value);
+        const newA = currentA * 3; // Increase orbit size significantly
+        
+        ui.a.value = newA;
+        
+        // Refresh the orbit line to show new trajectory
+        refreshOrbitLine();
+        
+        // Show success message
+        setTimeout(() => {
+          alert("Success! Asteroid has been deflected into a safe trajectory!");
+        }, 1000);
+      }
 
       // Function to check rocket collision with the asteroid
       function checkRocketCollision() {
-        if (!rocket) return;
+        if (!rocket || asteroidDeflected || asteroidImpacted) return;
 
         const distanceToAsteroid = rocket.position.distanceTo(
           asteroid.position
         );
         if (distanceToAsteroid <= 300) {
           // Asteroid's radius
-          scene.remove(rocket); // Remove the rocket
-          scene.remove(asteroid); // Destroy the asteroid
-          createExplosion(asteroid.position); // Trigger explosion at the asteroid's position
-          rocket = null;
-          rocketLaunched = false;
+          deflectAsteroid();
         }
       }
 
@@ -366,13 +533,24 @@
       function animate() {
         requestAnimationFrame(animate);
         const t = performance.now() / 1000;
-        const { a, e, i, Omega, omega, M0, timeScale } = getElements();
-        // Scale timeScale for a more dramatic effect: map slider [0.01, 500] to speed [0.01, 100]
+        const { a, e, i, Omega, omega, M0, mass, timeScale } = getElements();
+        
+        // Update asteroid shape if mass changed
+        const currentMass = Math.pow(10, parseFloat(ui.mass.value));
+        if (currentMass < 1e6 && asteroid.geometry.type !== 'IcosahedronGeometry') {
+          updateAsteroidMass(currentMass);
+        } else if (currentMass >= 1e6 && asteroid.geometry.type === 'IcosahedronGeometry') {
+          updateAsteroidMass(currentMass);
+        }
+        
+        // Calculate delta time and apply time scaling
+        const deltaT = t - lastT;
         let scaledTime = Math.max(0.01, Math.pow(timeScale, 1.2));
         if (running) {
-          simTime += (t - lastT) * scaledTime;
+          simTime += deltaT * scaledTime;
         }
         lastT = t;
+        
         // Asteroid mean motion n = sqrt(mu / a^3)
         const nAst = Math.sqrt(muEarth / (a * a * a));
         // Only apply simTime to the time evolution, not to M0
@@ -390,8 +568,9 @@
 
         // Check for collision with Earth
         const distanceToEarth = r_eci_ast.length();
-        if (distanceToEarth <= 6371) {
+        if (distanceToEarth <= 6371 && !asteroidDeflected && !asteroidImpacted) {
           // Earth's radius in km
+          asteroidImpacted = true;
           const collisionPoint = r_eci_ast
             .clone()
             .normalize()
@@ -399,16 +578,32 @@
 
           createExplosion(collisionPoint); // Trigger explosion at the collision point
           markDamageOnEarth(collisionPoint); // Mark damage on Earth's surface
+          deformAsteroid(); // Deform the asteroid on impact
 
-          scene.remove(asteroid); // Remove asteroid from the scene
+          // After impact, change asteroid trajectory to U-shaped orbit
+          setTimeout(() => {
+            // Increase eccentricity to create a U-shaped orbit
+            ui.e.value = 0.95;
+            // Increase semi-major axis to make it leave the frame
+            ui.a.value = 80000;
+            // Update the orbit line
+            refreshOrbitLine();
+            
+            // Move asteroid to a position far away
+            asteroid.position.set(100000, 0, 0);
+            
+            alert("Impact! The asteroid has hit Earth and is now on a U-shaped trajectory!");
+          }, 2000);
         }
 
-        // Update rocket position if launched
+        // Update rocket position if launched - NOW AFFECTED BY TIME SCALE
         if (rocket) {
           const direction = new THREE.Vector3()
             .subVectors(asteroid.position, rocket.position)
             .normalize();
-          rocket.position.add(direction.multiplyScalar(100)); // Reduced speed even more
+          // Apply the same time scaling to rocket movement
+          const rocketSpeed = 100 * scaledTime;
+          rocket.position.add(direction.multiplyScalar(rocketSpeed * deltaT));
           checkRocketCollision();
         }
 
@@ -439,15 +634,21 @@
 
         // HUD stats
         const rmag = r_eci_ast.length().toFixed(1);
+        let status = "ON COLLISION COURSE";
+        if (asteroidDeflected) status = "DEFLECTED";
+        if (asteroidImpacted) status = "IMPACTED - ON U-SHAPED TRAJECTORY";
+        
         stats.textContent =
           `Asteroid orbit:\n` +
           `a=${a} km  e=${e}  i=${parseFloat(ui.inc.value)}°\n` +
           `Ω=${parseFloat(ui.raan.value)}°  ω=${parseFloat(
             ui.argp.value
           )}°  M=${(((M_ast * 180) / Math.PI) % 360).toFixed(1)}°\n` +
+          `Mass=${currentMass.toExponential(2)} kg\n` +
           `r=${rmag} km  n=${nAst.toFixed(
             6
-          )} rad/s  timeScale=${timeScale}x\n\n` +
+          )} rad/s  timeScale=${timeScale}x\n` +
+          `Status: ${status}\n\n` +
           `Moon orbit:\n` +
           `a=${aMoon} km  e=${eMoon.toFixed(4)}  i=${(
             (iMoon * 180) /
@@ -460,7 +661,7 @@
       animate();
 
       // UI interactions
-      ["a", "e", "inc", "raan", "argp", "M0", "timeScale"].forEach((id) => {
+      ["a", "e", "inc", "raan", "argp", "M0", "timeScale", "mass"].forEach((id) => {
         ui[id].addEventListener("input", refreshOrbitLine);
       });
       refreshOrbitLine();
@@ -476,16 +677,6 @@
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
       });
-
-      function updateVelocity(value) {
-          document.getElementById('velocity-value').textContent = value;
-          fetch(`/update-kinetic-energy?velocity=${value}`)
-            .then(response => response.json())
-            .then(data => {
-              document.getElementById('kinetic-energy').textContent = `${data.kinetic_energy} Joules`;
-            })
-            .catch(error => console.error('Error:', error));
-        }
     </script>
   </body>
 </html>
