@@ -152,3 +152,37 @@ button:hover {
 header {
   height: 60px;
 }
+
+/* GMAT Integration Styles */
+.gmat-controls {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.gmat-controls button {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin: 2px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.gmat-controls button:hover {
+    background: #45a049;
+}
+
+.gmat-controls button:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
+
+.gmat-status {
+    font-weight: bold;
+    padding: 5px;
+    border-radius: 3px;
+    margin: 5px 0;
+}
