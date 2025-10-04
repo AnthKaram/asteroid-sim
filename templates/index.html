@@ -97,6 +97,18 @@
       <label>Kinetic Energy of Asteroid:</label>
       <div id="kinetic-energy">{{ kinetic_energy }} Joules</div>
 
+      <label>Asteroid Velocity (km/s):</label>
+      <input
+        id="velocity"
+        type="range"
+        min="11"
+        max="72"
+        step="1"
+        value="11"
+        oninput="updateVelocity(this.value)"
+      />
+      <span id="velocity-value">11</span> km/s
+
       <button id="toggle">Pause</button>
       <div id="stats"></div>
     </div>
@@ -502,6 +514,16 @@
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
       });
+
+      function updateVelocity(value) {
+          document.getElementById('velocity-value').textContent = value;
+          fetch(`/update-kinetic-energy?velocity=${value}`)
+            .then(response => response.json())
+            .then(data => {
+              document.getElementById('kinetic-energy').textContent = `${data.kinetic_energy} Joules`;
+            })
+            .catch(error => console.error('Error:', error));
+        }
     </script>
   </body>
 </html>
