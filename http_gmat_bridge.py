@@ -11,7 +11,7 @@ class PhysicsGMATIntegration {
         this.simulationActive = false;
         this.currentData = null;
         this.pollInterval = null;
-        this.baseURL = 'http://localhost:8765';
+        this.baseURL = '/gmat/';
         this.manualMode = true; // Start in manual mode (GMAT OFF)
     }
 

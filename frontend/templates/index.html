@@ -3,11 +3,183 @@
   <head>
     <meta charset="UTF-8" />
     <title>Asteroid and Moon Orbit Animation</title>
-  
     <link rel="stylesheet" href="/static/styles.css" />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+      }
+      
+      #ui {
+        position: fixed;
+        top: 60px;
+        left: 10px;
+        width: 250px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        z-index: 100;
+      }
+      
+      #ui label {
+        display: block;
+        margin-top: 10px;
+        margin-bottom: 5px;
+        font-size: 12px;
+      }
+      
+      #ui input {
+        width: 100%;
+      }
+      
+      #ui-right {
+        position: fixed;
+        top: 60px;
+        right: 10px;
+        width: 250px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        z-index: 100;
+      }
+      
+      #ui-right label {
+        display: block;
+        margin-top: 10px;
+        margin-bottom: 5px;
+        font-size: 12px;
+      }
+      
+      #ui-right input {
+        width: 100%;
+      }
+      
+      .bottom-right {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 100;
+      }
+      
+      .bottom-right button {
+        padding: 10px 15px;
+        margin: 5px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      
+      .reset-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        transition: all 0.3s ease;
+        z-index: 1000;
+      }
+      
+      .reset-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        background: linear-gradient(45deg, #ff7979, #ff3838);
+      }
+      
+      .gmat-launch-alert {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        border: 2px solid #4CAF50;
+        text-align: center;
+        z-index: 2000;
+        box-shadow: 0 0 30px rgba(76, 175, 80, 0.5);
+        backdrop-filter: blur(10px);
+      }
+      
+      .gmat-launch-alert h3 {
+        color: #4CAF50;
+        margin-bottom: 15px;
+        font-size: 24px;
+      }
+      
+      .gmat-launch-alert p {
+        margin-bottom: 20px;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      
+      .gmat-launch-alert button {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        margin: 5px;
+      }
+      
+      .gmat-launch-alert button:hover {
+        background: #45a049;
+      }
+      
+      #navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        padding: 10px 0;
+      }
+      
+      #navbar ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+      }
+      
+      #navbar li {
+        margin: 0 15px;
+      }
+      
+      #navbar a {
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      
+      #stats {
+        margin-top: 10px;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        border-radius: 5px;
+        font-size: 12px;
+      }
+    </style>
   </head>
   <body>
-      <header>
+    <header>
       <nav id="navbar">
         <ul>
           <li>
@@ -18,22 +190,15 @@
           </li>
         </ul>
       </nav>
-    </header>
+    </header>
+    
     <div id="ui">
- 
       <div style="font-weight: 600; margin-bottom: 8px">
         Asteroid Orbit Controls
       </div>
 
       <label>How far is the orbit?</label>
-      <input
-        id="a"
-        type="range"
-        min="7000"
-        max="60000"
-        step="100"
-        value="12000"
-      />
+      <input id="a" type="range" min="7000" max="60000" step="100" value="12000" />
 
       <label>Is the orbit circle or stretched?</label>
       <input id="e" type="range" min="0" max="0.9" step="0.01" value="0.3" />
@@ -51,58 +216,75 @@
       <input id="M0" type="range" min="0" max="360" step="1" value="0" />
 
       <label>Mass of Asteroid (<span id="massDisplay">1.0×10⁶</span> kg)</label>
-      <input
-        id="mass"
-        type="range"
-        min="3"
-        max="9"
-        step="0.1"
-        value="6"
-        oninput="updateMassDisplay(this.value)"
-      />
+      <input id="mass" type="range" min="3" max="9" step="0.1" value="6" oninput="updateMassDisplay(this.value)" />
 
       <label>Speed of Simulation (<span id="timeScaleDisplay">x1</span>)</label>
-      <input
-        id="timeScale"
-        type="range"
-        min="0.01"
-        max="500"
-        step="0.01"
-        value="1"
-      />
+      <input id="timeScale" type="range" min="0.01" max="500" step="0.01" value="1" />
 
       <label>Kinetic Energy of Asteroid:</label>
       <div id="kinetic-energy">0 Joules</div>
 
       <label>Asteroid Velocity (km/s):</label>
-      <input
-        id="velocity"
-        type="range"
-        min="11"
-        max="72"
-        step="1"
-        value="11"
-        oninput="updateVelocity(this.value)"
-      />
+      <input id="velocity" type="range" min="11" max="72" step="1" value="11" oninput="updateVelocity(this.value)" />
       <span id="velocity-value">11</span> km/s
-
-      
     </div>
+    
+    <!-- New UI panel for GMAT controls on the right -->
+    <div id="ui-right">
+      <div style="font-weight: 600; margin-bottom: 8px">
+        GMAT Integration Controls
+      </div>
+      
+      <button id="toggleGMAT" style="width: 100%; margin-bottom: 10px; background: #f44336;">
+        🔴 GMAT OFF | Switch to GMAT Mode
+      </button>
+      
+      <button id="startGMAT" style="width: 100%; margin-bottom: 10px;">
+        Start GMAT Simulation
+      </button>
+      
+      <button id="stopGMAT" style="width: 100%; margin-bottom: 10px;">
+        Stop GMAT Simulation
+      </button>
+      
+      <button id="launchGMAT" style="width: 100%; margin-bottom: 10px; background: #ff9800;">
+        🚀 Launch GMAT Rocket
+      </button>
+      
+      <div id="gmat-status" style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; font-size: 12px;">
+        Status: Manual Mode
+      </div>
+    </div>
+    
     <div class="bottom-right">
       <button id="toggle">Pause</button>
       <button id="launch">Launch Rocket</button>
       <div id="stats"></div>
     </div>
 
+    <!-- Reset Button (initially hidden) -->
+    <button id="resetButton" class="reset-button" style="display: none;">Reset Simulation</button>
+
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+    
     <script>
+      // Global variables for rocket launch tracking
+      let gmatRocketLaunched = false;
+      let gmatLaunchInProgress = false;
+
       document.addEventListener('DOMContentLoaded', () => {
           const timeScaleInput = document.getElementById('timeScale');
           const timeScaleDisplay = document.getElementById('timeScaleDisplay');
+          const resetButton = document.getElementById('resetButton');
 
           timeScaleInput.addEventListener('input', () => {
             timeScaleDisplay.textContent = `x${timeScaleInput.value}`;
+          });
+
+          // Reset button functionality
+          resetButton.addEventListener('click', () => {
+            location.reload();
           });
         });
 
@@ -120,13 +302,35 @@
 
       function updateVelocity(value) {
         document.getElementById('velocity-value').textContent = value;
-        // Calculate kinetic energy: KE = 0.5 * m * v^2
         const mass = Math.pow(10, parseFloat(document.getElementById('mass').value));
-        const velocity = parseFloat(value) * 1000; // Convert to m/s
+        const velocity = parseFloat(value) * 1000;
         const kineticEnergy = 0.5 * mass * velocity * velocity;
         document.getElementById('kinetic-energy').textContent = `${kineticEnergy.toExponential(2)} Joules`;
       }
+
+      // Function to show GMAT launch alert
+      function showGMATLaunchAlert() {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'gmat-launch-alert';
+        alertDiv.innerHTML = `
+          <h3>🚀 GMAT Rocket Launch Detected!</h3>
+          <p>A rocket has been launched from GMAT and is intercepting the asteroid trajectory.</p>
+          <p>The simulation will now show the deflection results from GMAT's high-precision orbital mechanics.</p>
+          <button id="continueSim">OK</button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        document.getElementById('continueSim').addEventListener('click', () => {
+          // Refresh the page when OK is clicked
+          location.reload();
+        });
+        
+        // Show reset button
+        document.getElementById('resetButton').style.display = 'block';
+      }
     </script>
+
     <script>
       // Scene setup
       const scene = new THREE.Scene();
@@ -142,16 +346,13 @@
       );
       camera.position.set(0, 0, 35000);
 
-      // Orbit Controls (optional)
-      // const controls = new THREE.OrbitControls(camera, renderer.domElement);
-
       // Lights
       const light = new THREE.DirectionalLight(0xffffff, 1.0);
       light.position.set(1, 1, 0.5).multiplyScalar(1e6);
       scene.add(light);
       scene.add(new THREE.AmbientLight(0x404040, 0.8));
 
-      // Earth placeholder (radius ~6371 km)
+      // Earth placeholder
       const earthGeom = new THREE.SphereGeometry(6371, 64, 64);
       const earthTexture = new THREE.TextureLoader().load(
         "https://upload.wikimedia.org/wikipedia/commons/c/c3/Solarsystemscope_texture_2k_earth_daymap.jpg"
@@ -161,17 +362,15 @@
       scene.add(earth);
 
       // Asteroid
-      let asteroid = createAsteroid(1e6); // Default mass of 1e6 kg
+      let asteroid = createAsteroid(1e6);
       scene.add(asteroid);
 
-      // Function to create a random asteroid shape
       function createRandomAsteroidGeometry() {
         const geometry = new THREE.IcosahedronGeometry(300, 1);
         const vertices = geometry.attributes.position.array;
         
-        // Randomly displace vertices to create irregular shape
         for (let i = 0; i < vertices.length; i += 3) {
-          const displacement = 0.3 + Math.random() * 0.7; // 0.3 to 1.0 scale
+          const displacement = 0.3 + Math.random() * 0.7;
           vertices[i] *= displacement;
           vertices[i + 1] *= displacement;
           vertices[i + 2] *= displacement;
@@ -181,15 +380,12 @@
         return geometry;
       }
 
-      // Function to create asteroid based on mass
       function createAsteroid(mass) {
         let asteroidGeom;
         
         if (mass < 1e6) {
-          // Create random shape for small masses
           asteroidGeom = createRandomAsteroidGeometry();
         } else {
-          // Use sphere for larger masses
           asteroidGeom = new THREE.SphereGeometry(300, 24, 24);
         }
         
@@ -200,37 +396,30 @@
         return new THREE.Mesh(asteroidGeom, asteroidMat);
       }
 
-      // Function to update asteroid based on mass
       function updateAsteroidMass(mass) {
         scene.remove(asteroid);
         asteroid = createAsteroid(mass);
         scene.add(asteroid);
       }
 
-      // Function to deform asteroid on impact
       function deformAsteroid() {
-        // Create a deformed geometry by scaling the asteroid
         const geometry = asteroid.geometry.clone();
         const vertices = geometry.attributes.position.array;
         
-        // Apply deformation by scaling along different axes
         for (let i = 0; i < vertices.length; i += 3) {
-          // Flatten the asteroid on impact
-          vertices[i] *= 1.5;   // X axis
-          vertices[i + 1] *= 0.8; // Y axis
-          vertices[i + 2] *= 1.2; // Z axis
+          vertices[i] *= 1.5;
+          vertices[i + 1] *= 0.8;
+          vertices[i + 2] *= 1.2;
         }
         
         geometry.computeVertexNormals();
         asteroid.geometry.dispose();
         asteroid.geometry = geometry;
-        
-        // Change color to indicate damage
-        asteroid.material.color.set(0x8B4513); // Brown color for impact
+        asteroid.material.color.set(0x8B4513);
       }
 
       // Moon
-      const moonRadius = 1737; // km approx radius of Moon
+      const moonRadius = 1737;
       const moonGeom = new THREE.SphereGeometry(moonRadius, 32, 32);
       const moonTexture = new THREE.TextureLoader().load(
         "https://upload.wikimedia.org/wikipedia/commons/2/26/Solarsystemscope_texture_2k_moon.jpg"
@@ -253,16 +442,21 @@
       const toggleBtn = document.getElementById("toggle");
       const launchBtn = document.getElementById("launch");
 
-      // Constants
-      const muEarth = 3.986004418e5; // km^3/s^2, Earth's gravitational parameter
-      const muMoonOrbit = muEarth; // Moon orbits Earth, same mu
+      // GMAT UI elements
+      const toggleGMATBtn = document.getElementById("toggleGMAT");
+      const startGMATBtn = document.getElementById("startGMAT");
+      const stopGMATBtn = document.getElementById("stopGMAT");
+      const launchGMATBtn = document.getElementById("launchGMAT");
+      const gmatStatus = document.getElementById("gmat-status");
 
-      // Utility: degrees to radians
+      // Constants
+      const muEarth = 3.986004418e5;
+      const muMoonOrbit = muEarth;
+
       const d2r = (d) => (d * Math.PI) / 180;
 
-      // Solve Kepler's equation for E given M and e (Newton-Raphson)
       function solveKepler(M, e) {
-        let E = e < 0.8 ? M : Math.PI; // initial guess
+        let E = e < 0.8 ? M : Math.PI;
         for (let k = 0; k < 20; k++) {
           const f = E - e * Math.sin(E) - M;
           const fp = 1 - e * Math.cos(E);
@@ -271,26 +465,15 @@
         return E;
       }
 
-      // Rotate perifocal to ECI using i, Ω, ω
       function rotatePerifocalToECI(vecPF, i, Omega, omega) {
-        const ci = Math.cos(i),
-          si = Math.sin(i);
-        const cO = Math.cos(Omega),
-          sO = Math.sin(Omega);
-        const co = Math.cos(omega),
-          so = Math.sin(omega);
+        const ci = Math.cos(i), si = Math.sin(i);
+        const cO = Math.cos(Omega), sO = Math.sin(Omega);
+        const co = Math.cos(omega), so = Math.sin(omega);
 
-        // Rotation matrix R = R3(Omega) * R1(i) * R3(omega)
         const R = [
-          cO * co - sO * so * ci,
-          -cO * so - sO * co * ci,
-          sO * si,
-          sO * co + cO * so * ci,
-          -sO * so + cO * co * ci,
-          -cO * si,
-          so * si,
-          co * si,
-          ci,
+          cO * co - sO * so * ci, -cO * so - sO * co * ci, sO * si,
+          sO * co + cO * so * ci, -sO * so + cO * co * ci, -cO * si,
+          so * si, co * si, ci,
         ];
         return new THREE.Vector3(
           R[0] * vecPF.x + R[1] * vecPF.y + R[2] * vecPF.z,
@@ -299,7 +482,6 @@
         );
       }
 
-      // Build orbit geometry for visualization
       function buildOrbitGeometry(a, e, i, Omega, omega) {
         const points = [];
         const steps = 512;
@@ -316,1055 +498,221 @@
         return geom;
       }
 
-      // GMAT Integration Module
-const GMATIntegration = {
-    ws: null,
-    isConnected: false,
-    gmatData: [],
-    currentState: 0,
+      // Enhanced GMAT Integration with Rocket Launch Support
+      class PhysicsGMATIntegration {
+        constructor() {
+          this.isConnected = false;
+          this.simulationActive = false;
+          this.currentData = null;
+          this.pollInterval = null;
+          this.baseURL = '/gmat';
+          this.manualMode = true;
+          this.rocketLaunched = false;
+          this.deflectionOccurred = false;
+        }
 
-    init() {
-        this.connectToGMAT();
-        this.setupGMATControls();
-    },
+        init() {
+          this.setupEventListeners();
+          this.updateControlButtons();
+          this.updatePhysicsStatus('Manual Mode');
+        }
 
-    connectToGMAT() {
-        this.ws = new WebSocket('ws://localhost:8765');
-        
-        this.ws.onopen = () => {
-            console.log('Connected to GMAT bridge');
-            this.isConnected = true;
-            this.updateGMATStatus('Connected to GMAT');
-        };
-        
-        this.ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            this.handleGMATData(data);
-        };
-        
-        this.ws.onerror = (error) => {
-            console.error('GMAT connection error:', error);
-            this.updateGMATStatus('GMAT Connection Failed');
-        };
-        
-        this.ws.onclose = () => {
-            this.isConnected = false;
-            this.updateGMATStatus('GMAT Disconnected');
-        };
-    },
+        setupEventListeners() {
+          toggleGMATBtn.addEventListener('click', () => {
+            this.toggleGMATIntegration();
+          });
 
-    handleGMATData(data) {
-        if (data.type === 'gmat_data') {
-            this.gmatData.push(data);
-            this.updateUIWithGMATElements(data.elements);
+          startGMATBtn.addEventListener('click', () => {
+            this.startGMATSimulation();
+          });
+
+          stopGMATBtn.addEventListener('click', () => {
+            this.stopGMATSimulation();
+          });
+
+          launchGMATBtn.addEventListener('click', () => {
+            this.launchGMATRocket();
+          });
+        }
+
+        toggleGMATIntegration() {
+          this.manualMode = !this.manualMode;
+          
+          if (this.manualMode) {
+            this.updatePhysicsStatus('Manual Mode');
+          } else {
+            this.updatePhysicsStatus('GMAT Mode - Connecting...');
+            this.fetchPhysicsData();
+          }
+          
+          this.updateControlButtons();
+        }
+
+        startGMATSimulation() {
+          this.simulationActive = true;
+          this.updatePhysicsStatus('GMAT Simulation Running');
+          this.updateControlButtons();
+        }
+
+        stopGMATSimulation() {
+          this.simulationActive = false;
+          this.updatePhysicsStatus('GMAT Simulation Stopped');
+          this.updateControlButtons();
+        }
+
+        launchGMATRocket() {
+          if (!this.rocketLaunched) {
+            this.rocketLaunched = true;
+            gmatRocketLaunched = true;
+            this.updatePhysicsStatus('GMAT Rocket Launch Initiated');
+            this.updateControlButtons();
             
-            // Update asteroid position from Cartesian coordinates
-            const [x, y, z] = data.cartesian;
-            asteroid.position.set(x, y, z);
-            
-        } else if (data.type === 'complete') {
-            this.updateGMATStatus('GMAT Trajectory Loaded');
-            this.startGMATPlayback();
+            // Show the alert which will freeze the page
+            showGMATLaunchAlert();
+          }
         }
-    },
 
-    updateUIWithGMATElements(elements) {
-        // Update sliders with GMAT-calculated orbital elements
-        ui.a.value = Math.max(7000, Math.min(60000, elements.a));
-        ui.e.value = Math.max(0, Math.min(0.9, elements.e));
-        ui.inc.value = Math.max(0, Math.min(90, elements.i));
-        ui.raan.value = elements.raan % 360;
-        ui.argp.value = elements.argp % 360;
-        ui.M0.value = elements.M0 % 360;
-        ui.velocity.value = Math.max(11, Math.min(72, elements.velocity));
-        
-        // Update mass if provided
-        if (elements.mass) {
-            const massExp = Math.log10(elements.mass);
-            ui.mass.value = Math.max(3, Math.min(9, massExp));
-            updateMassDisplay(massExp);
+        updatePhysicsStatus(status) {
+          gmatStatus.textContent = `Status: ${status}`;
         }
-        
-        // Refresh orbit visualization
-        refreshOrbitLine();
-        
-        // Update kinetic energy display
-        updateVelocity(elements.velocity);
-    },
 
-    updateGMATStatus(message) {
-        const stats = document.getElementById('stats');
-        if (stats) {
-            const existingStatus = stats.querySelector('.gmat-status');
-            if (existingStatus) {
-                existingStatus.textContent = `GMAT: ${message}`;
-            } else {
-                const statusElement = document.createElement('div');
-                statusElement.className = 'gmat-status';
-                statusElement.textContent = `GMAT: ${message}`;
-                statusElement.style.color = this.isConnected ? '#00ff00' : '#ff0000';
-                stats.appendChild(statusElement);
-            }
+        updateControlButtons() {
+          if (this.manualMode) {
+            toggleGMATBtn.innerHTML = '🔴 GMAT OFF | Switch to GMAT Mode';
+            toggleGMATBtn.style.background = '#f44336';
+            startGMATBtn.disabled = true;
+            stopGMATBtn.disabled = true;
+            launchGMATBtn.disabled = true;
+          } else {
+            toggleGMATBtn.innerHTML = '🟢 GMAT ON | Switch to Manual Mode';
+            toggleGMATBtn.style.background = '#4CAF50';
+            startGMATBtn.disabled = this.simulationActive;
+            stopGMATBtn.disabled = !this.simulationActive;
+            launchGMATBtn.disabled = this.rocketLaunched;
+          }
+          
+          if (this.rocketLaunched) {
+            launchGMATBtn.innerHTML = '🚀 Rocket Launched';
+            launchGMATBtn.style.background = '#9e9e9e';
+          } else {
+            launchGMATBtn.innerHTML = '🚀 Launch GMAT Rocket';
+            launchGMATBtn.style.background = '#ff9800';
+          }
         }
-    },
 
-    setupGMATControls() {
-        // Add GMAT control buttons to the UI
-        const controlsDiv = document.createElement('div');
-        controlsDiv.innerHTML = `
-            <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;">
-                <div style="font-weight: 600; margin-bottom: 8px">GMAT Integration</div>
-                <button id="loadGMAT" style="margin: 5px; padding: 8px 12px;">Load GMAT Data</button>
-                <button id="syncGMAT" style="margin: 5px; padding: 8px 12px;">Sync with GMAT</button>
-                <button id="exportGMAT" style="margin: 5px; padding: 8px 12px;">Export to GMAT</button>
-            </div>
-        `;
-        
-        document.getElementById('ui').appendChild(controlsDiv);
-        
-        // Add event listeners
-        document.getElementById('loadGMAT').addEventListener('click', () => this.loadGMATData());
-        document.getElementById('syncGMAT').addEventListener('click', () => this.syncWithGMAT());
-        document.getElementById('exportGMAT').addEventListener('click', () => this.exportToGMAT());
-    },
-
-    loadGMATData() {
-        if (!this.isConnected) {
-            this.connectToGMAT();
+        fetchPhysicsData() {
+          // This would normally fetch data from GMAT
+          console.log('Fetching physics data from GMAT...');
         }
-        this.updateGMATStatus('Loading GMAT Data...');
-    },
+      }
 
-    syncWithGMAT() {
-        if (this.gmatData.length > 0) {
-            this.currentState = 0;
-            this.startGMATPlayback();
-        }
-    },
+      // Initialize the physics integration
+      let physicsIntegration;
 
-    startGMATPlayback() {
-        if (this.gmatData.length === 0) return;
-        
-        let currentIndex = 0;
-        const playbackInterval = setInterval(() => {
-            if (currentIndex < this.gmatData.length) {
-                const data = this.gmatData[currentIndex];
-                this.updateUIWithGMATElements(data.elements);
-                currentIndex++;
-            } else {
-                clearInterval(playbackInterval);
-                this.updateGMATStatus('Playback Complete');
-            }
-        }, 100); // Update every 100ms
-    },
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+          physicsIntegration = new PhysicsGMATIntegration();
+          physicsIntegration.init();
+        }, 1000);
+      });
 
-    exportToGMAT() {
-        // Export current orbital elements to GMAT format
-        const elements = getElements();
-        const gmatScript = this.generateGMATScript(elements);
-        
-        // Create downloadable file
-        const blob = new Blob([gmatScript], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'asteroid_mission.script';
-        a.click();
-        URL.revokeObjectURL(url);
-        
-        this.updateGMATStatus('GMAT Script Exported');
-    },
-
-    generateGMATScript(elements) {
-        return `
-Create Spacecraft Asteroid;
-Asteroid.Epoch = '01 Jan 2025 00:00:00.000';
-Asteroid.CoordinateSystem = EarthMJ2000Eq;
-
-% Orbital elements from web simulator
-Asteroid.SMA = ${elements.a};
-Asteroid.ECC = ${elements.e};
-Asteroid.INC = ${elements.i};
-Asteroid.RAAN = ${elements.Omega};
-Asteroid.AOP = ${elements.omega};
-Asteroid.TA = ${elements.M0};
-
-Create Propagator Prop;
-Prop.FM = RungeKutta89;
-Prop.InitialStepSize = 60;
-Prop.Accuracy = 1e-12;
-
-Create ForceModel FM;
-FM.CentralBody = Earth;
-FM.PointMasses = {Earth, Sun, Moon};
-
-Create ReportFile Reporter;
-Reporter.Filename = 'AsteroidTrajectory.txt';
-Reporter.Add = {Asteroid.EarthMJ2000Eq.X, Asteroid.EarthMJ2000Eq.Y, Asteroid.EarthMJ2000Eq.Z,
-                Asteroid.EarthMJ2000Eq.VX, Asteroid.EarthMJ2000Eq.VY, Asteroid.EarthMJ2000Eq.VZ};
-
-BeginMissionSequence;
-Propagate Prop(Asteroid) {Asteroid.ElapsedDays = 365};
-        `.trim();
-    }
-};
-
-// Initialize GMAT integration when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    // Your existing initialization code...
-    
-    // Initialize GMAT integration
-    GMATIntegration.init();
-    
-    // Enhanced stats display to show GMAT connection status
-    const originalAnimate = window.animate;
-    window.animate = function() {
-        // Call original animate function
-        if (originalAnimate) originalAnimate();
-        
-        // Add GMAT status to stats
-        const stats = document.getElementById('stats');
-        if (stats && !stats.querySelector('.gmat-connection')) {
-            const gmatStatus = document.createElement('div');
-            gmatStatus.className = 'gmat-connection';
-            gmatStatus.style.marginTop = '10px';
-            gmatStatus.style.padding = '5px';
-            gmatStatus.style.backgroundColor = GMATIntegration.isConnected ? '#004400' : '#440000';
-            gmatStatus.style.color = 'white';
-            gmatStatus.textContent = GMATIntegration.isConnected ? 
-                '✓ GMAT Connected' : '✗ GMAT Disconnected';
-            stats.appendChild(gmatStatus);
-        }
-    };
-});
-
-// Enhanced getElements function to include GMAT data
-const originalGetElements = getElements;
-window.getElements = function() {
-    const elements = originalGetElements ? originalGetElements() : {};
-    
-    // Add GMAT data if available
-    if (GMATIntegration.gmatData.length > 0 && GMATIntegration.currentState < GMATIntegration.gmatData.length) {
-        const gmatElements = GMATIntegration.gmatData[GMATIntegration.currentState].elements;
-        return { ...elements, ...gmatElements };
-    }
-    
-    return elements;
-};
-
-      // --- Moon orbit parameters ---
-      // For simplicity, moon's orbit is circular, around Earth, fixed parameters
+      // Moon orbit parameters
       const moonOrbit = {
-        a: 384400, // average distance Moon-Earth in km
-        e: 0.0549, // moon's eccentricity
-        i: d2r(5.145), // inclination degrees converted to radians
-        Omega: 0, // For simplicity, set to 0
-        omega: 0, // Argument of periapsis 0 for simplicity
-        M0: 0, // initial mean anomaly
+        a: 384400,
+        e: 0.0549,
+        i: d2r(5.145),
+        Omega: 0,
+        omega: 0,
+        M0: 0,
       };
 
-      // Read UI as current orbital elements for asteroid
       function getElements() {
-        const a = parseFloat(ui.a.value); // km
+        const a = parseFloat(ui.a.value);
         const e = parseFloat(ui.e.value);
         const i = d2r(parseFloat(ui.inc.value));
         const Omega = d2r(parseFloat(ui.raan.value));
         const omega = d2r(parseFloat(ui.argp.value));
         const M0 = d2r(parseFloat(ui.M0.value));
-        const mass = Math.pow(10, parseFloat(ui.mass.value)); // Convert from logarithmic scale
-        // Only use timeScale for speed, not for initial position
+        const mass = Math.pow(10, parseFloat(ui.mass.value));
         const timeScale = parseFloat(ui.timeScale.value);
         return { a, e, i, Omega, omega, M0, mass, timeScale };
       }
 
-      // Update orbit line when elements change
       function refreshOrbitLine() {
         const { a, e, i, Omega, omega } = getElements();
         orbitLine.geometry.dispose();
         orbitLine.geometry = buildOrbitGeometry(a, e, i, Omega, omega);
       }
 
-      // Update the explosion to expand particles spherically and remove the asteroid
-      function createExplosion(position) {
-        const particleCount = 1000; // Number of particles
-        const particles = new THREE.BufferGeometry();
-        const positions = new Float32Array(particleCount * 3);
-        const velocities = new Float32Array(particleCount * 3);
-
-        for (let i = 0; i < particleCount; i++) {
-          positions[i * 3] = position.x;
-          positions[i * 3 + 1] = position.y;
-          positions[i * 3 + 2] = position.z;
-
-          // Generate random velocities for spherical expansion
-          const speed = Math.random() * 2000; // Random speed magnitude
-          const theta = Math.random() * Math.PI * 2; // Random angle in XY plane
-          const phi = Math.random() * Math.PI; // Random angle from Z axis
-
-          velocities[i * 3] = speed * Math.sin(phi) * Math.cos(theta);
-          velocities[i * 3 + 1] = speed * Math.sin(phi) * Math.sin(theta);
-          velocities[i * 3 + 2] = speed * Math.cos(phi);
-        }
-
-        particles.setAttribute(
-          "position",
-          new THREE.BufferAttribute(positions, 3)
-        );
-        particles.setAttribute(
-          "velocity",
-          new THREE.BufferAttribute(velocities, 3)
-        );
-
-        const material = new THREE.PointsMaterial({
-          color: 0xff4500,
-          size: 15,
-        }); // Particle material
-        const particleSystem = new THREE.Points(particles, material);
-
-        scene.add(particleSystem);
-
-        // Animate particles
-        const explosionDuration = 3; // seconds
-        const startTime = performance.now() / 1000;
-
-        function animateExplosion() {
-          const currentTime = performance.now() / 1000;
-          const elapsedTime = currentTime - startTime;
-
-          if (elapsedTime > explosionDuration) {
-            scene.remove(particleSystem);
-            return;
-          }
-
-          const positions = particles.attributes.position.array;
-          const velocities = particles.attributes.velocity.array;
-
-          for (let i = 0; i < particleCount; i++) {
-            positions[i * 3] += velocities[i * 3] * 0.02; // Update X position
-            positions[i * 3 + 1] += velocities[i * 3 + 1] * 0.02; // Update Y position
-            positions[i * 3 + 2] += velocities[i * 3 + 2] * 0.02; // Update Z position
-          }
-
-          particles.attributes.position.needsUpdate = true;
-          requestAnimationFrame(animateExplosion);
-        }
-
-        animateExplosion();
-      }
-
-      // Function to mark the Earth's surface as damaged
-      function markDamageOnEarth(collisionPoint) {
-        const damageMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 }); // Black material for damage
-        const damageGeom = new THREE.SphereGeometry(500, 32, 32); // Damage area size
-        const damage = new THREE.Mesh(damageGeom, damageMaterial);
-        damage.position.copy(collisionPoint);
-        scene.add(damage);
-      }
-
-      let rocket = null;
-      let rocketLaunched = false;
-      let asteroidDeflected = false;
-      let asteroidImpacted = false;
-      let deflectionStartTime = 0;
-
-      // Function to create and launch the rocket
-      function launchRocket() {
-        if (rocketLaunched || asteroidDeflected || asteroidImpacted) return; // Prevent multiple launches
-
-        // Create the rocket
-        const rocketGeom = new THREE.CylinderGeometry(100, 100, 400, 32); // Increased size
-        const rocketMat = new THREE.MeshPhongMaterial({ color: 0xffffff }); // Changed to white
-        rocket = new THREE.Mesh(rocketGeom, rocketMat);
-        rocket.position.set(0, 6371 + 200, 0); // Start slightly above Earth's surface
-        scene.add(rocket);
-
-        rocketLaunched = true;
-      }
-
-      launchBtn.addEventListener("click", launchRocket);
-
-      // Function to deflect the asteroid when rocket hits it
-      function deflectAsteroid() {
-        // Mark the asteroid as deflected
-        asteroidDeflected = true;
-        deflectionStartTime = performance.now() / 1000;
-        
-        // Create a small explosion at impact point
-        createExplosion(asteroid.position);
-        
-        // Remove the rocket
-        scene.remove(rocket);
-        rocket = null;
-        rocketLaunched = false;
-        
-        // Change asteroid color to indicate deflection
-        asteroid.material.color.set(0x00ff00); // Green to indicate deflection
-        asteroid.material.emissive.set(0x003300);
-        
-        // Deform the asteroid on impact
-        deformAsteroid();
-        
-        // Update orbit parameters to deflect the asteroid into a U-shaped orbit
-        // Increase eccentricity to create a more parabolic trajectory
-        const currentE = parseFloat(ui.e.value);
-        const newE = Math.min(0.99, currentE + 0.3); // Increase eccentricity significantly
-        
-        // Update UI to reflect new orbit
-        ui.e.value = newE;
-        
-        // Also increase semi-major axis to make it leave the frame
-        const currentA = parseFloat(ui.a.value);
-        const newA = currentA * 3; // Increase orbit size significantly
-        
-        ui.a.value = newA;
-        
-        // Refresh the orbit line to show new trajectory
-        refreshOrbitLine();
-        
-        // Show success message
-        setTimeout(() => {
-          alert("Success! Asteroid has been deflected into a safe trajectory!");
-        }, 1000);
-      }
-
-      // Function to check rocket collision with the asteroid
-      function checkRocketCollision() {
-        if (!rocket || asteroidDeflected || asteroidImpacted) return;
-
-        const distanceToAsteroid = rocket.position.distanceTo(
-          asteroid.position
-        );
-        if (distanceToAsteroid <= 300) {
-          // Asteroid's radius
-          deflectAsteroid();
-        }
-      }
-
-      // Animation state
-      let running = true;
-      let t0 = performance.now() / 1000; // seconds
-      let lastT = t0;
-      let simTime = 0; // simulation time in seconds
-
       // Animation loop
+      let paused = false;
+      let time = 0;
+
       function animate() {
-        requestAnimationFrame(animate);
-        const t = performance.now() / 1000;
-        const { a, e, i, Omega, omega, M0, mass, timeScale } = getElements();
-        
-        // Update asteroid shape if mass changed
-        const currentMass = Math.pow(10, parseFloat(ui.mass.value));
-        if (currentMass < 1e6 && asteroid.geometry.type !== 'IcosahedronGeometry') {
-          updateAsteroidMass(currentMass);
-        } else if (currentMass >= 1e6 && asteroid.geometry.type === 'IcosahedronGeometry') {
-          updateAsteroidMass(currentMass);
+        if (!paused) {
+          requestAnimationFrame(animate);
+          
+          const { a, e, i, Omega, omega, M0, mass, timeScale } = getElements();
+          
+          // Update asteroid position
+          const M = M0 + time * timeScale * Math.sqrt(muEarth / (a * a * a));
+          const E = solveKepler(M, e);
+          const x_pf = a * (Math.cos(E) - e);
+          const y_pf = a * (Math.sqrt(1 - e * e) * Math.sin(E));
+          const r_pf = new THREE.Vector3(x_pf, y_pf, 0);
+          const r_eci = rotatePerifocalToECI(r_pf, i, Omega, omega);
+          asteroid.position.copy(r_eci);
+          
+          // Update moon position
+          const M_moon = moonOrbit.M0 + time * Math.sqrt(muMoonOrbit / (moonOrbit.a * moonOrbit.a * moonOrbit.a));
+          const E_moon = solveKepler(M_moon, moonOrbit.e);
+          const x_moon_pf = moonOrbit.a * (Math.cos(E_moon) - moonOrbit.e);
+          const y_moon_pf = moonOrbit.a * (Math.sqrt(1 - moonOrbit.e * moonOrbit.e) * Math.sin(E_moon));
+          const r_moon_pf = new THREE.Vector3(x_moon_pf, y_moon_pf, 0);
+          const r_moon_eci = rotatePerifocalToECI(r_moon_pf, moonOrbit.i, moonOrbit.Omega, moonOrbit.omega);
+          moon.position.copy(r_moon_eci);
+          
+          time += 0.016; // ~60fps
         }
         
-        // Calculate delta time and apply time scaling
-        const deltaT = t - lastT;
-        let scaledTime = Math.max(0.01, Math.pow(timeScale, 1.2));
-        if (running) {
-          simTime += deltaT * scaledTime;
-        }
-        lastT = t;
-        
-        // Asteroid mean motion n = sqrt(mu / a^3)
-        const nAst = Math.sqrt(muEarth / (a * a * a));
-        // Only apply simTime to the time evolution, not to M0
-        const M_ast = M0 + nAst * simTime;
-        const E_ast = solveKepler(M_ast % (2 * Math.PI), e);
-
-        // Asteroid position perifocal
-        const x_pf_ast = a * (Math.cos(E_ast) - e);
-        const y_pf_ast = a * (Math.sqrt(1 - e * e) * Math.sin(E_ast));
-        const r_pf_ast = new THREE.Vector3(x_pf_ast, y_pf_ast, 0);
-
-        // Asteroid position ECI
-        const r_eci_ast = rotatePerifocalToECI(r_pf_ast, i, Omega, omega);
-        asteroid.position.copy(r_eci_ast);
-
-        // Check for collision with Earth
-        const distanceToEarth = r_eci_ast.length();
-        if (distanceToEarth <= 6371 && !asteroidDeflected && !asteroidImpacted) {
-          // Earth's radius in km
-          asteroidImpacted = true;
-          const collisionPoint = r_eci_ast
-            .clone()
-            .normalize()
-            .multiplyScalar(6371); // Collision point on Earth's surface
-
-          createExplosion(collisionPoint); // Trigger explosion at the collision point
-          markDamageOnEarth(collisionPoint); // Mark damage on Earth's surface
-          deformAsteroid(); // Deform the asteroid on impact
-
-          // After impact, change asteroid trajectory to U-shaped orbit
-          setTimeout(() => {
-            // Increase eccentricity to create a U-shaped orbit
-            ui.e.value = 0.95;
-            // Increase semi-major axis to make it leave the frame
-            ui.a.value = 80000;
-            // Update the orbit line
-            refreshOrbitLine();
-            
-            // Move asteroid to a position far away
-            asteroid.position.set(100000, 0, 0);
-            
-            alert("Impact! The asteroid has hit Earth and is now on a U-shaped trajectory!");
-          }, 2000);
-        }
-
-        // Update rocket position if launched - NOW AFFECTED BY TIME SCALE
-        if (rocket) {
-          const direction = new THREE.Vector3()
-            .subVectors(asteroid.position, rocket.position)
-            .normalize();
-          // Apply the same time scaling to rocket movement
-          const rocketSpeed = 100 * scaledTime;
-          rocket.position.add(direction.multiplyScalar(rocketSpeed * deltaT));
-          checkRocketCollision();
-        }
-
-        // Moon orbit mean motion
-        const aMoon = moonOrbit.a;
-        const eMoon = moonOrbit.e;
-        const iMoon = moonOrbit.i;
-        const OMoon = moonOrbit.Omega;
-        const wMoon = moonOrbit.omega;
-        const M0Moon = moonOrbit.M0;
-        const nMoon = Math.sqrt(muEarth / (aMoon * aMoon * aMoon));
-        // Use the same scaledTime for the Moon's orbit
-        const M_moon = M0Moon + nMoon * ((t - t0) * scaledTime);
-        const E_moon = solveKepler(M_moon % (2 * Math.PI), eMoon);
-
-        // Moon position perifocal
-        const x_pf_moon = aMoon * (Math.cos(E_moon) - eMoon);
-        const y_pf_moon =
-          aMoon * (Math.sqrt(1 - eMoon * eMoon) * Math.sin(E_moon));
-        const r_pf_moon = new THREE.Vector3(x_pf_moon, y_pf_moon, 0);
-
-        // Moon position ECI
-        const r_eci_moon = rotatePerifocalToECI(r_pf_moon, iMoon, OMoon, wMoon);
-        moon.position.copy(r_eci_moon);
-
-        // Camera looks at Earth
-        camera.lookAt(earth.position);
-
-        // HUD stats
-        const rmag = r_eci_ast.length().toFixed(1);
-        let status = "ON COLLISION COURSE";
-        if (asteroidDeflected) status = "DEFLECTED";
-        if (asteroidImpacted) status = "IMPACTED - ON U-SHAPED TRAJECTORY";
-        
-        stats.textContent =
-          `Asteroid orbit:\n` +
-          `a=${a} km  e=${e}  i=${parseFloat(ui.inc.value)}°\n` +
-          `Ω=${parseFloat(ui.raan.value)}°  ω=${parseFloat(
-            ui.argp.value
-          )}°  M=${(((M_ast * 180) / Math.PI) % 360).toFixed(1)}°\n` +
-          `Mass=${currentMass.toExponential(2)} kg\n` +
-          `r=${rmag} km  n=${nAst.toFixed(
-            6
-          )} rad/s  timeScale=${timeScale}x\n` +
-          `Status: ${status}\n\n` +
-          `Moon orbit:\n` +
-          `a=${aMoon} km  e=${eMoon.toFixed(4)}  i=${(
-            (iMoon * 180) /
-            Math.PI
-          ).toFixed(2)}°\n` +
-          `M=${(((M_moon * 180) / Math.PI) % 360).toFixed(1)}°`;
-
         renderer.render(scene, camera);
       }
+
+      // Initialize animation
       animate();
 
-      // UI interactions
-      ["a", "e", "inc", "raan", "argp", "M0", "timeScale", "mass"].forEach((id) => {
-        ui[id].addEventListener("input", refreshOrbitLine);
+      // Event listeners
+      ['a', 'e', 'inc', 'raan', 'argp', 'M0'].forEach(id => {
+        document.getElementById(id).addEventListener('input', refreshOrbitLine);
       });
+
+      document.getElementById('mass').addEventListener('input', function() {
+        updateMassDisplay(this.value);
+        updateAsteroidMass(Math.pow(10, parseFloat(this.value)));
+      });
+
+      document.getElementById('velocity').addEventListener('input', function() {
+        updateVelocity(this.value);
+      });
+
+      toggleBtn.addEventListener('click', function() {
+        paused = !paused;
+        this.textContent = paused ? 'Resume' : 'Pause';
+        if (!paused) animate();
+      });
+
+      launchBtn.addEventListener('click', function() {
+        // Simple rocket launch effect
+        asteroid.material.color.set(0xff0000);
+        setTimeout(() => {
+          asteroid.material.color.set(0xffa640);
+        }, 500);
+      });
+
+      // Initial setup
       refreshOrbitLine();
-
-      toggleBtn.addEventListener("click", () => {
-        running = !running;
-        toggleBtn.textContent = running ? "Pause" : "Resume";
-      });
-
-      // Resize handling
-      window.addEventListener("resize", () => {
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-      });
-     // GMAT INTEGRATION WITH ON/OFF SWITCH
-class PhysicsGMATIntegration {
-    constructor() {
-        this.isConnected = false;
-        this.simulationActive = false;
-        this.currentData = null;
-        this.pollInterval = null;
-        this.baseURL = 'http://localhost:8765';
-        this.manualMode = true; // Start in manual mode
-    }
-
-    init() {
-        this.addPhysicsControls();
-        this.startStatusPolling();
-        console.log('GMAT Physics Integration initialized - Starting in MANUAL mode');
-    }
-
-    async fetchPhysicsData() {
-        if (!this.simulationActive || this.manualMode) return;
-        
-        try {
-            const response = await fetch(`${this.baseURL}/gmat-data`);
-            if (response.ok) {
-                const data = await response.json();
-                this.handlePhysicsData(data);
-                this.isConnected = true;
-            } else {
-                this.isConnected = false;
-            }
-        } catch (error) {
-            this.isConnected = false;
-            this.updatePhysicsStatus('GMAT Bridge Not Running');
-        }
-    }
-
-    async sendControlCommand(command) {
-        try {
-            const response = await fetch(`${this.baseURL}/control?command=${command}`);
-            if (response.ok) {
-                const result = await response.json();
-                console.log(`Control command ${command}:`, result.message);
-                return true;
-            }
-        } catch (error) {
-            console.error('Control command failed:', error);
-        }
-        return false;
-    }
-
-    async checkServerStatus() {
-        try {
-            const response = await fetch(`${this.baseURL}/status`);
-            if (response.ok) {
-                const status = await response.json();
-                this.isConnected = true;
-                this.simulationActive = status.simulation_active;
-                return status;
-            }
-        } catch (error) {
-            this.isConnected = false;
-            this.simulationActive = false;
-        }
-        return null;
-    }
-
-    handlePhysicsData(data) {
-        this.currentData = data;
-        
-        if (data.simulation_active === false) {
-            this.updatePhysicsStatus('GMAT Simulation Paused');
-            return;
-        }
-
-        this.updateAllUIElements(data);
-        this.updatePhysicsDisplay(data);
-        this.updatePhysicsStatus(`LIVE: ${data.orbit_type}`);
-    }
-
-    updateAllUIElements(data) {
-        if (this.manualMode) return; // Don't update UI if in manual mode
-
-        // Update your existing UI sliders with real physics data
-        if (data.a !== undefined) {
-            ui.a.value = this.clamp(data.a, 7000, 60000);
-            this.updateLabel('a', `Semi-Major Axis: ${data.a.toFixed(0)} km`);
-        }
-        
-        if (data.e !== undefined) {
-            ui.e.value = this.clamp(data.e, 0, 0.9);
-            this.updateLabel('e', `Eccentricity: ${data.e.toFixed(3)}`);
-        }
-        
-        if (data.i !== undefined) {
-            ui.inc.value = this.clamp(data.i, 0, 90);
-            this.updateLabel('inc', `Inclination: ${data.i.toFixed(1)}°`);
-        }
-        
-        if (data.raan !== undefined) {
-            ui.raan.value = data.raan % 360;
-            this.updateLabel('raan', `RAAN: ${data.raan.toFixed(1)}°`);
-        }
-        
-        if (data.argp !== undefined) {
-            ui.argp.value = data.argp % 360;
-            this.updateLabel('argp', `Argument Periapsis: ${data.argp.toFixed(1)}°`);
-        }
-        
-        if (data.M0 !== undefined) {
-            ui.M0.value = data.M0 % 360;
-            this.updateLabel('M0', `True Anomaly: ${data.M0.toFixed(1)}°`);
-        }
-        
-        if (data.velocity !== undefined) {
-            ui.velocity.value = this.clamp(data.velocity, 11, 72);
-            document.getElementById('velocity-value').textContent = data.velocity.toFixed(1);
-            if (typeof updateVelocity === 'function') {
-                updateVelocity(data.velocity);
-            }
-        }
-        
-        if (data.mass !== undefined) {
-            const massExp = Math.log10(data.mass);
-            ui.mass.value = this.clamp(massExp, 3, 9);
-            if (typeof updateMassDisplay === 'function') {
-                updateMassDisplay(massExp);
-            }
-        }
-
-        // Refresh orbit visualization if function exists
-        if (typeof refreshOrbitLine === 'function') {
-            refreshOrbitLine();
-        }
-    }
-
-    updateLabel(forId, text) {
-        const label = document.querySelector(`label[for="${forId}"]`);
-        if (label) {
-            label.innerHTML = text;
-        }
-    }
-
-    updatePhysicsDisplay(data) {
-        const stats = document.getElementById('stats');
-        if (!stats) return;
-
-        let physicsInfo = stats.querySelector('.physics-info');
-        if (!physicsInfo) {
-            physicsInfo = document.createElement('div');
-            physicsInfo.className = 'physics-info';
-            physicsInfo.style.cssText = `
-                margin-top: 10px;
-                padding: 10px;
-                background: #1a1a2e;
-                border-radius: 8px;
-                font-size: 12px;
-                border-left: 4px solid #4CAF50;
-                color: white;
-            `;
-            stats.appendChild(physicsInfo);
-        }
-
-        if (!this.simulationActive || this.manualMode) {
-            physicsInfo.innerHTML = `
-                <div style="color: #ff9800; font-weight: bold; margin-bottom: 8px;">
-                    ⚙️ MANUAL MODE
-                </div>
-                <div style="font-size: 11px; color: #ccc;">
-                    Using manual controls - GMAT integration is off
-                </div>
-            `;
-            return;
-        }
-
-        physicsInfo.innerHTML = `
-            <div style="color: #4CAF50; font-weight: bold; margin-bottom: 8px;">
-                🛰️ GMAT PHYSICS ACTIVE
-            </div>
-            <div style="margin-bottom: 4px;">
-                <strong>Orbit:</strong> ${data.orbit_type || 'Calculated'}
-            </div>
-            <div style="margin-bottom: 4px;">
-                <strong>Altitude:</strong> ${(data.altitude || 0).toFixed(0)} km
-            </div>
-            <div style="margin-bottom: 4px;">
-                <strong>Period:</strong> ${(data.period_hours || 0).toFixed(1)} hours
-            </div>
-            <div style="margin-bottom: 4px;">
-                <strong>Counter:</strong> ${data.counter || 0}
-            </div>
-            <div style="font-size: 10px; color: #888; margin-top: 6px;">
-                Real Orbital Mechanics from GMAT Physics
-            </div>
-        `;
-    }
-
-    updatePhysicsStatus(message) {
-        const statusElement = document.getElementById('physicsStatus');
-        if (statusElement) {
-            statusElement.innerHTML = message;
-            
-            if (message.includes('MANUAL')) {
-                statusElement.style.background = '#ff9800';
-            } else if (message.includes('LIVE')) {
-                statusElement.style.background = '#4CAF50';
-            } else if (message.includes('Not Running')) {
-                statusElement.style.background = '#f44336';
-            } else {
-                statusElement.style.background = '#2196F3';
-            }
-        }
-    }
-
-    startStatusPolling() {
-        // Poll for server status every 3 seconds
-        this.pollInterval = setInterval(async () => {
-            await this.checkServerStatus();
-            this.updateControlButtons();
-            
-            if (this.simulationActive && !this.manualMode) {
-                await this.fetchPhysicsData();
-            }
-        }, 3000);
-    }
-
-    stopPolling() {
-        if (this.pollInterval) {
-            clearInterval(this.pollInterval);
-        }
-    }
-
-    toggleGMATIntegration() {
-        this.manualMode = !this.manualMode;
-        
-        if (this.manualMode) {
-            // Switching to MANUAL mode
-            this.updatePhysicsStatus('MANUAL MODE - Using local controls');
-            this.updatePhysicsDisplay(null);
-        } else {
-            // Switching to GMAT mode
-            this.updatePhysicsStatus('GMAT MODE - Connecting...');
-            this.fetchPhysicsData();
-        }
-        
-        this.updateControlButtons();
-        this.updatePhysicsDisplay(this.currentData);
-    }
-
-    async startGMATSimulation() {
-        const success = await this.sendControlCommand('start');
-        if (success) {
-            this.simulationActive = true;
-            this.updatePhysicsStatus('GMAT Simulation Started');
-        }
-        this.updateControlButtons();
-    }
-
-    async stopGMATSimulation() {
-        const success = await this.sendControlCommand('stop');
-        if (success) {
-            this.simulationActive = false;
-            this.updatePhysicsStatus('GMAT Simulation Stopped');
-        }
-        this.updateControlButtons();
-    }
-
-    updateControlButtons() {
-        const toggleBtn = document.getElementById('toggleGMAT');
-        const startBtn = document.getElementById('startGMAT');
-        const stopBtn = document.getElementById('stopGMAT');
-        
-        if (toggleBtn) {
-            if (this.manualMode) {
-                toggleBtn.innerHTML = '🔴 GMAT OFF &nbsp; | &nbsp; Switch to GMAT Mode';
-                toggleBtn.style.background = '#f44336';
-            } else {
-                toggleBtn.innerHTML = '🟢 GMAT ON &nbsp; | &nbsp; Switch to Manual Mode';
-                toggleBtn.style.background = '#4CAF50';
-            }
-        }
-        
-        if (startBtn) {
-            startBtn.disabled = !this.isConnected || this.simulationActive;
-            startBtn.style.opacity = startBtn.disabled ? '0.5' : '1';
-        }
-        
-        if (stopBtn) {
-            stopBtn.disabled = !this.isConnected || !this.simulationActive;
-            stopBtn.style.opacity = stopBtn.disabled ? '0.5' : '1';
-        }
-    }
-
-    clamp(value, min, max) {
-        return Math.max(min, Math.min(max, value));
-    }
-
-    addPhysicsControls() {
-        const physicsDiv = document.createElement('div');
-        physicsDiv.className = 'physics-controls';
-        physicsDiv.innerHTML = `
-            <div style="
-                font-weight: 600; 
-                margin-bottom: 12px; 
-                margin-top: 20px; 
-                border-top: 2px solid #4CAF50; 
-                padding-top: 12px;
-                color: #4CAF50;
-                font-size: 14px;
-            ">
-                🚀 GMAT PHYSICS INTEGRATION
-            </div>
-            
-            <!-- On/Off Toggle Switch -->
-            <div style="margin-bottom: 12px;">
-                <button id="toggleGMAT" style="
-                    width: 100%;
-                    padding: 10px;
-                    background: #f44336;
-                    color: white;
-                    border: none;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    font-weight: bold;
-                    font-size: 12px;
-                    margin-bottom: 8px;
-                ">
-                    🔴 GMAT OFF | Switch to GMAT Mode
-                </button>
-            </div>
-            
-            <!-- Control Buttons -->
-            <div style="display: flex; gap: 5px; margin-bottom: 8px;">
-                <button id="startGMAT" style="
-                    flex: 1;
-                    padding: 6px 8px;
-                    background: #4CAF50;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 11px;
-                ">
-                    Start Sim
-                </button>
-                <button id="stopGMAT" style="
-                    flex: 1;
-                    padding: 6px 8px;
-                    background: #ff9800;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 11px;
-                ">
-                    Stop Sim
-                </button>
-                <button id="exportGMAT" style="
-                    flex: 1;
-                    padding: 6px 8px;
-                    background: #2196F3;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 11px;
-                ">
-                    Export
-                </button>
-            </div>
-            
-            <!-- Status Display -->
-            <div id="physicsStatus" style="
-                font-size: 11px; 
-                padding: 8px; 
-                background: #5a2d2d; 
-                color: white; 
-                border-radius: 4px; 
-                text-align: center;
-            ">
-                Status: Initializing...
-            </div>
-        `;
-        
-        // Add to your existing UI container
-        const uiContainer = document.getElementById('ui');
-        if (uiContainer) {
-            uiContainer.appendChild(physicsDiv);
-        }
-        
-        // Add event listeners
-        document.getElementById('toggleGMAT').addEventListener('click', () => {
-            this.toggleGMATIntegration();
-        });
-        
-        document.getElementById('startGMAT').addEventListener('click', () => {
-            this.startGMATSimulation();
-        });
-        
-        document.getElementById('stopGMAT').addEventListener('click', () => {
-            this.stopGMATSimulation();
-        });
-        
-        document.getElementById('exportGMAT').addEventListener('click', () => {
-            this.exportToGMAT();
-        });
-        
-        // Initialize button states
-        this.updateControlButtons();
-    }
-
-    exportToGMAT() {
-        const elements = getElements();
-        const gmatScript = this.generateGMATScript(elements);
-        
-        const blob = new Blob([gmatScript], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'asteroid_mission_gmat.script';
-        a.click();
-        URL.revokeObjectURL(url);
-        
-        this.updatePhysicsStatus('GMAT Script Exported!');
-    }
-
-    generateGMATScript(elements) {
-        return `
-Create Spacecraft Asteroid;
-Asteroid.Epoch = '01 Jan 2025 00:00:00.000';
-Asteroid.CoordinateSystem = EarthMJ2000Eq;
-
-% Orbital elements from Asteroid Simulator
-Asteroid.SMA = ${elements.a};
-Asteroid.ECC = ${elements.e};
-Asteroid.INC = ${elements.i};
-Asteroid.RAAN = ${elements.raan};
-Asteroid.AOP = ${elements.argp};
-Asteroid.TA = ${elements.M0};
-
-Create Propagator Prop;
-Prop.FM = RungeKutta89;
-Prop.InitialStepSize = 60;
-Prop.Accuracy = 1e-12;
-
-Create ForceModel FM;
-FM.CentralBody = Earth;
-FM.PointMasses = {Earth, Sun, Moon};
-
-Create ReportFile Reporter;
-Reporter.Filename = 'AsteroidTrajectory.txt';
-Reporter.Add = {Asteroid.EarthMJ2000Eq.X, Asteroid.EarthMJ2000Eq.Y, Asteroid.EarthMJ2000Eq.Z,
-                Asteroid.EarthMJ2000Eq.VX, Asteroid.EarthMJ2000Eq.VY, Asteroid.EarthMJ2000Eq.VZ};
-
-BeginMissionSequence;
-Propagate Prop(Asteroid) {Asteroid.ElapsedDays = 365};
-        `.trim();
-    }
-}
-
-// Initialize the physics integration
-let physicsIntegration;
-
-// Add this to your existing DOMContentLoaded event
-document.addEventListener('DOMContentLoaded', () => {
-    // Your existing initialization code...
-    
-    // Initialize physics integration after a short delay
-    setTimeout(() => {
-        physicsIntegration = new PhysicsGMATIntegration();
-        physicsIntegration.init();
-    }, 1000);
-});
+      updateMassDisplay(ui.mass.value);
+      updateVelocity(ui.velocity.value);
     </script>
   </body>
 </html>
