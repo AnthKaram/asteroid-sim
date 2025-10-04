@@ -1,13 +1,15 @@
 body {
   margin: 0;
-  font-family: sans-serif;
-  background: #0b0f1a;
+  font-family: "Orbitron", Arial, sans-serif;
+  background: #0b0f1a url("/static/stars.jpg") center center / cover no-repeat
+    fixed;
   color: #eaeef3;
+  overflow-x: hidden;
 }
 
 #ui {
   position: absolute;
-  top: 10px;
+  top: 120px; /* Lowered further to avoid touching the menu */
   left: 10px;
   background: rgba(20, 25, 35, 0.9);
   padding: 12px;
@@ -47,4 +49,95 @@ button {
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  font-family: "Orbitron", Arial, sans-serif;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+  color: #0ff;
+  background: rgba(20, 255, 255, 0.08);
+  box-shadow: 0 0 12px #0ff, 0 0 2px #fff;
+  border-radius: 8px;
+}
+
+#navbar {
+  background: linear-gradient(90deg, #0b0f1a 0%, #173b6b 100%);
+  box-shadow: 0 2px 16px 0 #0ff2, 0 1.5px 0 #1a1a2e;
+  overflow: hidden;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 2px solid #1a1a2e;
+}
+
+#navbar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+  gap: 0;
+}
+
+#navbar li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0;
+  min-width: 160px;
+  position: relative;
+  height: 60px;
+  font-family: "Orbitron", Arial, sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 1.5px;
+  text-align: center;
+  transition: background 0.2s;
+  z-index: 1;
+}
+
+#navbar li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 15%;
+  height: 70%;
+  width: 2px;
+  background: linear-gradient(180deg, #0ff 0%, #173b6b 100%);
+  box-shadow: 0 0 8px #0ff, 0 0 2px #fff;
+  border-radius: 2px;
+  z-index: 2;
+}
+
+.link {
+  text-decoration: none;
+}
+
+#navbar a {
+  color: #fff;
+  text-decoration: none;
+  padding: 12px 0;
+  width: 100%;
+  display: block;
+  font-family: "Orbitron", Arial, sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 1.5px;
+  transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+#navbar a:hover {
+  color: #0ff;
+  background: rgba(20, 255, 255, 0.08);
+  box-shadow: 0 0 12px #0ff, 0 0 2px #fff;
+  border-radius: 8px;
+  /* Add Orbitron font from Google Fonts */
+  @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap");
 }

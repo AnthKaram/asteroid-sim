@@ -3,46 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <title>Asteroid and Moon Orbit Animation</title>
-    <style>
-      body {
-        margin: 0;
-        overflow: hidden;
-        font-family: Arial, sans-serif;
-      }
-      #ui {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 15px;
-        border-radius: 5px;
-        max-width: 300px;
-        z-index: 100;
-      }
-      #ui label {
-        display: block;
-        margin-top: 10px;
-        font-size: 14px;
-      }
-      #ui input {
-        width: 100%;
-        margin-top: 5px;
-      }
-      #ui button {
-        margin-top: 10px;
-        padding: 5px 10px;
-        width: 100%;
-      }
-      #stats {
-        margin-top: 10px;
-        font-size: 12px;
-        white-space: pre-line;
-      }
-    </style>
+  
+    <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
+      <header>
+      <nav id="navbar">
+        <ul>
+          <li>
+            <a href="http://127.0.0.1:5000">Customize Your Asteroid</a>
+          </li>
+          <li>
+            <a href="http://127.0.0.1:5000/Preset.htm">Choose A Pre-Set</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
     <div id="ui">
+ 
       <div style="font-weight: 600; margin-bottom: 8px">
         Asteroid Orbit Controls
       </div>
@@ -236,7 +214,7 @@
         for (let i = 0; i < vertices.length; i += 3) {
           // Flatten the asteroid on impact
           vertices[i] *= 1.5;   // X axis
-          vertices[i + 1] *= 0.5; // Y axis
+          vertices[i + 1] *= 0.8; // Y axis
           vertices[i + 2] *= 1.2; // Z axis
         }
         
@@ -490,7 +468,7 @@
         // Update orbit parameters to deflect the asteroid into a U-shaped orbit
         // Increase eccentricity to create a more parabolic trajectory
         const currentE = parseFloat(ui.e.value);
-        const newE = Math.min(0.99, currentE + 0.5); // Increase eccentricity significantly
+        const newE = Math.min(0.99, currentE + 0.3); // Increase eccentricity significantly
         
         // Update UI to reflect new orbit
         ui.e.value = newE;
