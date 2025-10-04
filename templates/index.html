@@ -1,391 +1,501 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Asteroid and Moon Orbit Animation</title>
-  <style>
-    body { margin: 0; font-family: sans-serif; background: #0b0f1a; color: #eaeef3; }
-    #ui { position: absolute; top: 10px; left: 10px; background: rgba(20,25,35,0.9); padding: 12px; border-radius: 8px; max-width: 320px; }
-    #ui label { display: block; margin: 8px 0 4px; font-size: 12px; color: #c9d3e7; }
-    #ui input[type=range], #ui input[type=number] { width: 100%; }
-    #stats { margin-top: 10px; font-size: 12px; color: #9fb3d1; white-space: pre-wrap; }
-    canvas { display: block; }
-    button { margin-top: 8px; width: 100%; padding: 8px; background: #173b6b; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
-    button:hover { background: #1f4e8f; }
-  </style>
-</head>
-<body>
-  <div id="ui">
-    <div style="font-weight:600; margin-bottom:8px;">Asteroid Orbit Controls</div>
-
-    <label>How far is the orbit?</label>
-    <input id="a" type="range" min="7000" max="60000" step="100" value="12000">
-
-    <label>Is the orbit circle or stretched?</label>
-    <input id="e" type="range" min="0" max="0.9" step="0.01" value="0.3">
-
-    <label>How tilted is the orbit?</label>
-    <input id="inc" type="range" min="0" max="90" step="1" value="15">
-
-    <label>Orbit’s turning direction</label>
-    <input id="raan" type="range" min="0" max="360" step="1" value="40">
-
-    <label>Where’s the closest point?</label>
-    <input id="argp" type="range" min="0" max="360" step="1" value="20">
-
-    <label>Start position on orbit</label>
-    <input id="M0" type="range" min="0" max="360" step="1" value="0">
-
-    <label>How fast time goes</label>
-    <input id="timeScale" type="range" min="0.1" max="100" step="0.1" value="50">
-
-    <button id="toggle">Pause</button>
-    <div id="stats"></div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-  <script>
-    // Scene setup
-    const scene = new THREE.Scene();
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    const camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 1e9);
-    camera.position.set(0, 0, 30000);
-
-    // Orbit Controls (optional)
-    // const controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-    // Lights
-    const light = new THREE.DirectionalLight(0xffffff, 1.0);
-    light.position.set(1, 1, 0.5).multiplyScalar(1e6);
-    scene.add(light);
-    scene.add(new THREE.AmbientLight(0x404040, 0.8));
-
-    // Earth placeholder (radius ~6371 km)
-    const earthGeom = new THREE.SphereGeometry(6371, 64, 64);
-    const earthTexture = new THREE.TextureLoader().load('https://upload.wikimedia.org/wikipedia/commons/c/c3/Solarsystemscope_texture_2k_earth_daymap.jpg');
-    const earthMat = new THREE.MeshPhongMaterial({ map: earthTexture });
-    const earth = new THREE.Mesh(earthGeom, earthMat);
-    scene.add(earth);
-
-    // Asteroid
-    const asteroidGeom = new THREE.SphereGeometry(300, 24, 24);
-    const asteroidMat = new THREE.MeshPhongMaterial({ color: 0xffa640, emissive: 0x352100 });
-    const asteroid = new THREE.Mesh(asteroidGeom, asteroidMat);
-    scene.add(asteroid);
-
-    // Moon
-    const moonRadius = 1737; // km approx radius of Moon
-    const moonGeom = new THREE.SphereGeometry(moonRadius, 32, 32);
-    const moonTexture = new THREE.TextureLoader().load('https://upload.wikimedia.org/wikipedia/commons/2/26/Solarsystemscope_texture_2k_moon.jpg');
-    const moonMat = new THREE.MeshPhongMaterial({ map: moonTexture });
-    const moon = new THREE.Mesh(moonGeom, moonMat);
-    scene.add(moon);
-
-    // Orbit path line for asteroid
-    const orbitMaterial = new THREE.LineBasicMaterial({ color: 0x8fd3ff });
-    let orbitLine = new THREE.Line(new THREE.BufferGeometry(), orbitMaterial);
-    scene.add(orbitLine);
-
-    // UI elements
-    const ui = ["a","e","inc","raan","argp","M0","timeScale"].reduce((o,id)=>({ ...o, [id]: document.getElementById(id) }), {});
-    const stats = document.getElementById("stats");
-    const toggleBtn = document.getElementById("toggle");
-
-    // Constants
-    const muEarth = 3.986004418e5; // km^3/s^2, Earth's gravitational parameter
-    const muMoonOrbit = muEarth; // Moon orbits Earth, same mu
-
-    // Utility: degrees to radians
-    const d2r = (d) => d * Math.PI / 180;
-
-    // Solve Kepler's equation for E given M and e (Newton-Raphson)
-    function solveKepler(M, e) {
-      let E = e < 0.8 ? M : Math.PI; // initial guess
-      for (let k = 0; k < 20; k++) {
-        const f = E - e * Math.sin(E) - M;
-        const fp = 1 - e * Math.cos(E);
-        E = E - f / fp;
+  <head>
+    <meta charset="UTF-8" />
+    <title>Asteroid and Moon Orbit Animation</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: sans-serif;
+        background: #0b0f1a;
+        color: #eaeef3;
       }
-      return E;
-    }
+      #ui {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(20, 25, 35, 0.9);
+        padding: 12px;
+        border-radius: 8px;
+        max-width: 320px;
+      }
+      #ui label {
+        display: block;
+        margin: 8px 0 4px;
+        font-size: 12px;
+        color: #c9d3e7;
+      }
+      #ui input[type="range"],
+      #ui input[type="number"] {
+        width: 100%;
+      }
+      #stats {
+        margin-top: 10px;
+        font-size: 12px;
+        color: #9fb3d1;
+        white-space: pre-wrap;
+      }
+      canvas {
+        display: block;
+      }
+      button {
+        margin-top: 8px;
+        width: 100%;
+        padding: 8px;
+        background: #173b6b;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #1f4e8f;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ui">
+      <div style="font-weight: 600; margin-bottom: 8px">
+        Asteroid Orbit Controls
+      </div>
 
-    // Rotate perifocal to ECI using i, Ω, ω
-    function rotatePerifocalToECI(vecPF, i, Omega, omega) {
-      const ci = Math.cos(i), si = Math.sin(i);
-      const cO = Math.cos(Omega), sO = Math.sin(Omega);
-      const co = Math.cos(omega), so = Math.sin(omega);
+      <label>How far is the orbit?</label>
+      <input
+        id="a"
+        type="range"
+        min="7000"
+        max="60000"
+        step="100"
+        value="12000"
+      />
 
-      // Rotation matrix R = R3(Omega) * R1(i) * R3(omega)
-      const R = [
-        cO*co - sO*so*ci, -cO*so - sO*co*ci, sO*si,
-        sO*co + cO*so*ci, -sO*so + cO*co*ci, -cO*si,
-        so*si,             co*si,             ci
-      ];
-      return new THREE.Vector3(
-        R[0]*vecPF.x + R[1]*vecPF.y + R[2]*vecPF.z,
-        R[3]*vecPF.x + R[4]*vecPF.y + R[5]*vecPF.z,
-        R[6]*vecPF.x + R[7]*vecPF.y + R[8]*vecPF.z
+      <label>Is the orbit circle or stretched?</label>
+      <input id="e" type="range" min="0" max="0.9" step="0.01" value="0.3" />
+
+      <label>How tilted is the orbit?</label>
+      <input id="inc" type="range" min="0" max="90" step="1" value="15" />
+
+      <label>Orbit’s turning direction</label>
+      <input id="raan" type="range" min="0" max="360" step="1" value="40" />
+
+      <label>Where’s the closest point?</label>
+      <input id="argp" type="range" min="0" max="360" step="1" value="20" />
+
+      <label>Start position on orbit</label>
+      <input id="M0" type="range" min="0" max="360" step="1" value="0" />
+
+      <label>How fast time goes</label>
+      <input
+        id="timeScale"
+        type="range"
+        min="0.01"
+        max="500"
+        step="0.01"
+        value="1"
+      />
+
+      <button id="toggle">Pause</button>
+      <div id="stats"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <script>
+      // Scene setup
+      const scene = new THREE.Scene();
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      const camera = new THREE.PerspectiveCamera(
+        55,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1e9
       );
-    }
+      camera.position.set(0, 0, 30000);
 
-    // Build orbit geometry for visualization
-    function buildOrbitGeometry(a, e, i, Omega, omega) {
-      const points = [];
-      const steps = 512;
-      for (let s = 0; s <= steps; s++) {
-        const M = 2 * Math.PI * (s / steps);
-        const E = solveKepler(M, e);
-        const x_pf = a * (Math.cos(E) - e);
-        const y_pf = a * (Math.sqrt(1 - e*e) * Math.sin(E));
-        const r_pf = new THREE.Vector3(x_pf, y_pf, 0);
-        const r_eci = rotatePerifocalToECI(r_pf, i, Omega, omega);
-        points.push(r_eci);
-      }
-      const geom = new THREE.BufferGeometry().setFromPoints(points);
-      return geom;
-    }
+      // Orbit Controls (optional)
+      // const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-    // --- Moon orbit parameters ---
-    // For simplicity, moon's orbit is circular, around Earth, fixed parameters
-    const moonOrbit = {
-      a: 384400, // average distance Moon-Earth in km
-      e: 0.0549, // moon's eccentricity
-      i: d2r(5.145), // inclination degrees converted to radians
-      Omega: 0, // For simplicity, set to 0
-      omega: 0, // Argument of periapsis 0 for simplicity
-      M0: 0, // initial mean anomaly
-    };
+      // Lights
+      const light = new THREE.DirectionalLight(0xffffff, 1.0);
+      light.position.set(1, 1, 0.5).multiplyScalar(1e6);
+      scene.add(light);
+      scene.add(new THREE.AmbientLight(0x404040, 0.8));
 
-    // Read UI as current orbital elements for asteroid
-    function getElements() {
-      const a = parseFloat(ui.a.value);       // km
-      const e = parseFloat(ui.e.value);
-      const i = d2r(parseFloat(ui.inc.value));
-      const Omega = d2r(parseFloat(ui.raan.value));
-      const omega = d2r(parseFloat(ui.argp.value));
-      const M0 = d2r(parseFloat(ui.M0.value));
-      const timeScale = parseFloat(ui.timeScale.value);
-      return { a, e, i, Omega, omega, M0, timeScale };
-    }
+      // Earth placeholder (radius ~6371 km)
+      const earthGeom = new THREE.SphereGeometry(6371, 64, 64);
+      const earthTexture = new THREE.TextureLoader().load(
+        "https://upload.wikimedia.org/wikipedia/commons/c/c3/Solarsystemscope_texture_2k_earth_daymap.jpg"
+      );
+      const earthMat = new THREE.MeshPhongMaterial({ map: earthTexture });
+      const earth = new THREE.Mesh(earthGeom, earthMat);
+      scene.add(earth);
 
-    // Update orbit line when elements change
-    function refreshOrbitLine() {
-      const { a, e, i, Omega, omega } = getElements();
-      orbitLine.geometry.dispose();
-      orbitLine.geometry = buildOrbitGeometry(a, e, i, Omega, omega);
-    }
+      // Asteroid
+      const asteroidGeom = new THREE.SphereGeometry(300, 24, 24);
+      const asteroidMat = new THREE.MeshPhongMaterial({
+        color: 0xffa640,
+        emissive: 0x352100,
+      });
+      const asteroid = new THREE.Mesh(asteroidGeom, asteroidMat);
+      scene.add(asteroid);
 
-    // Update the explosion to expand particles spherically and remove the asteroid
-    function createExplosion(position) {
-      const particleCount = 1000; // Number of particles
-      const particles = new THREE.BufferGeometry();
-      const positions = new Float32Array(particleCount * 3);
-      const velocities = new Float32Array(particleCount * 3);
+      // Moon
+      const moonRadius = 1737; // km approx radius of Moon
+      const moonGeom = new THREE.SphereGeometry(moonRadius, 32, 32);
+      const moonTexture = new THREE.TextureLoader().load(
+        "https://upload.wikimedia.org/wikipedia/commons/2/26/Solarsystemscope_texture_2k_moon.jpg"
+      );
+      const moonMat = new THREE.MeshPhongMaterial({ map: moonTexture });
+      const moon = new THREE.Mesh(moonGeom, moonMat);
+      scene.add(moon);
 
-      for (let i = 0; i < particleCount; i++) {
-        positions[i * 3] = position.x;
-        positions[i * 3 + 1] = position.y;
-        positions[i * 3 + 2] = position.z;
+      // Orbit path line for asteroid
+      const orbitMaterial = new THREE.LineBasicMaterial({ color: 0x8fd3ff });
+      let orbitLine = new THREE.Line(new THREE.BufferGeometry(), orbitMaterial);
+      scene.add(orbitLine);
 
-        // Generate random velocities for spherical expansion
-        const speed = Math.random() * 2000; // Random speed magnitude
-        const theta = Math.random() * Math.PI * 2; // Random angle in XY plane
-        const phi = Math.random() * Math.PI; // Random angle from Z axis
+      // UI elements
+      const ui = ["a", "e", "inc", "raan", "argp", "M0", "timeScale"].reduce(
+        (o, id) => ({ ...o, [id]: document.getElementById(id) }),
+        {}
+      );
+      const stats = document.getElementById("stats");
+      const toggleBtn = document.getElementById("toggle");
 
-        velocities[i * 3] = speed * Math.sin(phi) * Math.cos(theta);
-        velocities[i * 3 + 1] = speed * Math.sin(phi) * Math.sin(theta);
-        velocities[i * 3 + 2] = speed * Math.cos(phi);
-      }
+      // Constants
+      const muEarth = 3.986004418e5; // km^3/s^2, Earth's gravitational parameter
+      const muMoonOrbit = muEarth; // Moon orbits Earth, same mu
 
-      particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      particles.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
+      // Utility: degrees to radians
+      const d2r = (d) => (d * Math.PI) / 180;
 
-      const material = new THREE.PointsMaterial({ color: 0xff4500, size: 15 }); // Particle material
-      const particleSystem = new THREE.Points(particles, material);
-
-      scene.add(particleSystem);
-
-      // Animate particles
-      const explosionDuration = 3; // seconds
-      const startTime = performance.now() / 1000;
-
-      function animateExplosion() {
-        const currentTime = performance.now() / 1000;
-        const elapsedTime = currentTime - startTime;
-
-        if (elapsedTime > explosionDuration) {
-          scene.remove(particleSystem);
-          return;
+      // Solve Kepler's equation for E given M and e (Newton-Raphson)
+      function solveKepler(M, e) {
+        let E = e < 0.8 ? M : Math.PI; // initial guess
+        for (let k = 0; k < 20; k++) {
+          const f = E - e * Math.sin(E) - M;
+          const fp = 1 - e * Math.cos(E);
+          E = E - f / fp;
         }
+        return E;
+      }
 
-        const positions = particles.attributes.position.array;
-        const velocities = particles.attributes.velocity.array;
+      // Rotate perifocal to ECI using i, Ω, ω
+      function rotatePerifocalToECI(vecPF, i, Omega, omega) {
+        const ci = Math.cos(i),
+          si = Math.sin(i);
+        const cO = Math.cos(Omega),
+          sO = Math.sin(Omega);
+        const co = Math.cos(omega),
+          so = Math.sin(omega);
+
+        // Rotation matrix R = R3(Omega) * R1(i) * R3(omega)
+        const R = [
+          cO * co - sO * so * ci,
+          -cO * so - sO * co * ci,
+          sO * si,
+          sO * co + cO * so * ci,
+          -sO * so + cO * co * ci,
+          -cO * si,
+          so * si,
+          co * si,
+          ci,
+        ];
+        return new THREE.Vector3(
+          R[0] * vecPF.x + R[1] * vecPF.y + R[2] * vecPF.z,
+          R[3] * vecPF.x + R[4] * vecPF.y + R[5] * vecPF.z,
+          R[6] * vecPF.x + R[7] * vecPF.y + R[8] * vecPF.z
+        );
+      }
+
+      // Build orbit geometry for visualization
+      function buildOrbitGeometry(a, e, i, Omega, omega) {
+        const points = [];
+        const steps = 512;
+        for (let s = 0; s <= steps; s++) {
+          const M = 2 * Math.PI * (s / steps);
+          const E = solveKepler(M, e);
+          const x_pf = a * (Math.cos(E) - e);
+          const y_pf = a * (Math.sqrt(1 - e * e) * Math.sin(E));
+          const r_pf = new THREE.Vector3(x_pf, y_pf, 0);
+          const r_eci = rotatePerifocalToECI(r_pf, i, Omega, omega);
+          points.push(r_eci);
+        }
+        const geom = new THREE.BufferGeometry().setFromPoints(points);
+        return geom;
+      }
+
+      // --- Moon orbit parameters ---
+      // For simplicity, moon's orbit is circular, around Earth, fixed parameters
+      const moonOrbit = {
+        a: 384400, // average distance Moon-Earth in km
+        e: 0.0549, // moon's eccentricity
+        i: d2r(5.145), // inclination degrees converted to radians
+        Omega: 0, // For simplicity, set to 0
+        omega: 0, // Argument of periapsis 0 for simplicity
+        M0: 0, // initial mean anomaly
+      };
+
+      // Read UI as current orbital elements for asteroid
+      function getElements() {
+        const a = parseFloat(ui.a.value); // km
+        const e = parseFloat(ui.e.value);
+        const i = d2r(parseFloat(ui.inc.value));
+        const Omega = d2r(parseFloat(ui.raan.value));
+        const omega = d2r(parseFloat(ui.argp.value));
+        const M0 = d2r(parseFloat(ui.M0.value));
+        // Only use timeScale for speed, not for initial position
+        const timeScale = parseFloat(ui.timeScale.value);
+        return { a, e, i, Omega, omega, M0, timeScale };
+      }
+
+      // Update orbit line when elements change
+      function refreshOrbitLine() {
+        const { a, e, i, Omega, omega } = getElements();
+        orbitLine.geometry.dispose();
+        orbitLine.geometry = buildOrbitGeometry(a, e, i, Omega, omega);
+        refreshMoonOrbitLine();
+      }
+
+      // Update the explosion to expand particles spherically and remove the asteroid
+      function createExplosion(position) {
+        const particleCount = 1000; // Number of particles
+        const particles = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const velocities = new Float32Array(particleCount * 3);
 
         for (let i = 0; i < particleCount; i++) {
-          positions[i * 3] += velocities[i * 3] * 0.02; // Update X position
-          positions[i * 3 + 1] += velocities[i * 3 + 1] * 0.02; // Update Y position
-          positions[i * 3 + 2] += velocities[i * 3 + 2] * 0.02; // Update Z position
+          positions[i * 3] = position.x;
+          positions[i * 3 + 1] = position.y;
+          positions[i * 3 + 2] = position.z;
+
+          // Generate random velocities for spherical expansion
+          const speed = Math.random() * 2000; // Random speed magnitude
+          const theta = Math.random() * Math.PI * 2; // Random angle in XY plane
+          const phi = Math.random() * Math.PI; // Random angle from Z axis
+
+          velocities[i * 3] = speed * Math.sin(phi) * Math.cos(theta);
+          velocities[i * 3 + 1] = speed * Math.sin(phi) * Math.sin(theta);
+          velocities[i * 3 + 2] = speed * Math.cos(phi);
         }
 
-        particles.attributes.position.needsUpdate = true;
-        requestAnimationFrame(animateExplosion);
+        particles.setAttribute(
+          "position",
+          new THREE.BufferAttribute(positions, 3)
+        );
+        particles.setAttribute(
+          "velocity",
+          new THREE.BufferAttribute(velocities, 3)
+        );
+
+        const material = new THREE.PointsMaterial({
+          color: 0xff4500,
+          size: 15,
+        }); // Particle material
+        const particleSystem = new THREE.Points(particles, material);
+
+        scene.add(particleSystem);
+
+        // Animate particles
+        const explosionDuration = 3; // seconds
+        const startTime = performance.now() / 1000;
+
+        function animateExplosion() {
+          const currentTime = performance.now() / 1000;
+          const elapsedTime = currentTime - startTime;
+
+          if (elapsedTime > explosionDuration) {
+            scene.remove(particleSystem);
+            return;
+          }
+
+          const positions = particles.attributes.position.array;
+          const velocities = particles.attributes.velocity.array;
+
+          for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] += velocities[i * 3] * 0.02; // Update X position
+            positions[i * 3 + 1] += velocities[i * 3 + 1] * 0.02; // Update Y position
+            positions[i * 3 + 2] += velocities[i * 3 + 2] * 0.02; // Update Z position
+          }
+
+          particles.attributes.position.needsUpdate = true;
+          requestAnimationFrame(animateExplosion);
+        }
+
+        animateExplosion();
       }
 
-      animateExplosion();
-    }
-
-    // Function to mark the Earth's surface as damaged
-    function markDamageOnEarth(collisionPoint) {
-      const damageMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 }); // Black material for damage
-      const damageGeom = new THREE.SphereGeometry(500, 32, 32); // Damage area size
-      const damage = new THREE.Mesh(damageGeom, damageMaterial);
-      damage.position.copy(collisionPoint);
-      scene.add(damage);
-    }
-
-    // Add a button to launch the rocket
-    const launchButton = document.createElement('button');
-    launchButton.textContent = 'Launch Rocket';
-    launchButton.style.marginTop = '8px';
-    document.getElementById('ui').appendChild(launchButton);
-
-    let rocket = null;
-    let rocketLaunched = false;
-
-    // Function to create and launch the rocket
-    function launchRocket() {
-      if (rocketLaunched) return; // Prevent multiple launches
-
-      // Create the rocket
-      const rocketGeom = new THREE.CylinderGeometry(100, 100, 400, 32); // Increased size
-      const rocketMat = new THREE.MeshPhongMaterial({ color: 0xffffff }); // Changed to white
-      rocket = new THREE.Mesh(rocketGeom, rocketMat);
-      rocket.position.set(0, 6371 + 200, 0); // Start slightly above Earth's surface
-      scene.add(rocket);
-
-      rocketLaunched = true;
-    }
-
-    launchButton.addEventListener('click', launchRocket);
-
-    // Function to check rocket collision with the asteroid
-    function checkRocketCollision() {
-      if (!rocket) return;
-
-      const distanceToAsteroid = rocket.position.distanceTo(asteroid.position);
-      if (distanceToAsteroid <= 300) { // Asteroid's radius
-        scene.remove(rocket); // Remove the rocket
-        scene.remove(asteroid); // Destroy the asteroid
-        createExplosion(asteroid.position); // Trigger explosion at the asteroid's position
-        rocket = null;
-        rocketLaunched = false;
-      }
-    }
-
-    // Animation state
-    let running = true;
-    let t0 = performance.now() / 1000; // seconds
-
-    // Animation loop
-    function animate() {
-      requestAnimationFrame(animate);
-      if (!running) return;
-
-      const t = performance.now() / 1000;
-      const { a, e, i, Omega, omega, M0, timeScale } = getElements();
-
-      // Asteroid mean motion n = sqrt(mu / a^3)
-      const nAst = Math.sqrt(muEarth / (a * a * a));
-      const M_ast = M0 + nAst * (t - t0) * timeScale;
-      const E_ast = solveKepler(M_ast % (2 * Math.PI), e);
-
-      // Asteroid position perifocal
-      const x_pf_ast = a * (Math.cos(E_ast) - e);
-      const y_pf_ast = a * (Math.sqrt(1 - e * e) * Math.sin(E_ast));
-      const r_pf_ast = new THREE.Vector3(x_pf_ast, y_pf_ast, 0);
-
-      // Asteroid position ECI
-      const r_eci_ast = rotatePerifocalToECI(r_pf_ast, i, Omega, omega);
-      asteroid.position.copy(r_eci_ast);
-
-      // Check for collision with Earth
-      const distanceToEarth = r_eci_ast.length();
-      if (distanceToEarth <= 6371) { // Earth's radius in km
-        const collisionPoint = r_eci_ast.clone().normalize().multiplyScalar(6371); // Collision point on Earth's surface
-
-        createExplosion(collisionPoint); // Trigger explosion at the collision point
-        markDamageOnEarth(collisionPoint); // Mark damage on Earth's surface
-
-        scene.remove(asteroid); // Remove asteroid from the scene
+      // Function to mark the Earth's surface as damaged
+      function markDamageOnEarth(collisionPoint) {
+        const damageMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 }); // Black material for damage
+        const damageGeom = new THREE.SphereGeometry(500, 32, 32); // Damage area size
+        const damage = new THREE.Mesh(damageGeom, damageMaterial);
+        damage.position.copy(collisionPoint);
+        scene.add(damage);
       }
 
-      // Update rocket position if launched
-      if (rocket) {
-        const direction = new THREE.Vector3().subVectors(asteroid.position, rocket.position).normalize();
-        rocket.position.add(direction.multiplyScalar(100)); // Reduced speed even more
-        checkRocketCollision();
+      // Add a button to launch the rocket
+      const launchButton = document.createElement("button");
+      launchButton.textContent = "Launch Rocket";
+      launchButton.style.marginTop = "8px";
+      document.getElementById("ui").appendChild(launchButton);
+
+      let rocket = null;
+      let rocketLaunched = false;
+
+      // Function to create and launch the rocket
+      function launchRocket() {
+        if (rocketLaunched) return; // Prevent multiple launches
+
+        // Create the rocket
+        const rocketGeom = new THREE.CylinderGeometry(100, 100, 400, 32); // Increased size
+        const rocketMat = new THREE.MeshPhongMaterial({ color: 0xffffff }); // Changed to white
+        rocket = new THREE.Mesh(rocketGeom, rocketMat);
+        rocket.position.set(0, 6371 + 200, 0); // Start slightly above Earth's surface
+        scene.add(rocket);
+
+        rocketLaunched = true;
       }
 
-      // Moon orbit mean motion
-      const aMoon = moonOrbit.a;
-      const eMoon = moonOrbit.e;
-      const iMoon = moonOrbit.i;
-      const OMoon = moonOrbit.Omega;
-      const wMoon = moonOrbit.omega;
-      const M0Moon = moonOrbit.M0;
-      const nMoon = Math.sqrt(muEarth / (aMoon * aMoon * aMoon));
-      const M_moon = M0Moon + nMoon * (t - t0);
-      const E_moon = solveKepler(M_moon % (2 * Math.PI), eMoon);
+      launchButton.addEventListener("click", launchRocket);
 
-      // Moon position perifocal
-      const x_pf_moon = aMoon * (Math.cos(E_moon) - eMoon);
-      const y_pf_moon = aMoon * (Math.sqrt(1 - eMoon * eMoon) * Math.sin(E_moon));
-      const r_pf_moon = new THREE.Vector3(x_pf_moon, y_pf_moon, 0);
+      // Function to check rocket collision with the asteroid
+      function checkRocketCollision() {
+        if (!rocket) return;
 
-      // Moon position ECI
-      const r_eci_moon = rotatePerifocalToECI(r_pf_moon, iMoon, OMoon, wMoon);
-      moon.position.copy(r_eci_moon);
+        const distanceToAsteroid = rocket.position.distanceTo(
+          asteroid.position
+        );
+        if (distanceToAsteroid <= 300) {
+          // Asteroid's radius
+          scene.remove(rocket); // Remove the rocket
+          scene.remove(asteroid); // Destroy the asteroid
+          createExplosion(asteroid.position); // Trigger explosion at the asteroid's position
+          rocket = null;
+          rocketLaunched = false;
+        }
+      }
 
-      // Camera looks at Earth
-      camera.lookAt(earth.position);
+      // Animation state
+      let running = true;
+      let t0 = performance.now() / 1000; // seconds
 
-      // HUD stats
-      const rmag = r_eci_ast.length().toFixed(1);
-      stats.textContent =
-        `Asteroid orbit:\n` +
-        `a=${a} km  e=${e}  i=${parseFloat(ui.inc.value)}°\n` +
-        `Ω=${parseFloat(ui.raan.value)}°  ω=${parseFloat(ui.argp.value)}°  M=${(M_ast * 180 / Math.PI % 360).toFixed(1)}°\n` +
-        `r=${rmag} km  n=${nAst.toFixed(6)} rad/s  timeScale=${timeScale}x\n\n` +
-        `Moon orbit:\n` +
-        `a=${aMoon} km  e=${eMoon.toFixed(4)}  i=${(iMoon * 180 / Math.PI).toFixed(2)}°\n` +
-        `M=${(M_moon * 180 / Math.PI % 360).toFixed(1)}°`;
-      
-      renderer.render(scene, camera);
-    }
-    animate();
+      // Animation loop
+      function animate() {
+        requestAnimationFrame(animate);
+        if (!running) return;
 
-    // UI interactions
-    ["a","e","inc","raan","argp","M0"].forEach(id => {
-      ui[id].addEventListener("input", refreshOrbitLine);
-    });
-    refreshOrbitLine();
+        const t = performance.now() / 1000;
+        const { a, e, i, Omega, omega, M0, timeScale } = getElements();
+        // Asteroid mean motion n = sqrt(mu / a^3)
+        const nAst = Math.sqrt(muEarth / (a * a * a));
+  // Scale timeScale for a more dramatic effect: map slider [0.01, 500] to speed [0.01, 100]
+  let scaledTime = Math.max(0.01, Math.pow(timeScale, 1.2));
+  // Only apply scaledTime to the time evolution, not to M0
+  const M_ast = M0 + nAst * ((t - t0) * scaledTime);
+        const E_ast = solveKepler(M_ast % (2 * Math.PI), e);
 
-    toggleBtn.addEventListener("click", () => {
-      running = !running;
-      toggleBtn.textContent = running ? "Pause" : "Resume";
-      if (running) t0 = performance.now() / 1000;
-    });
+        // Asteroid position perifocal
+        const x_pf_ast = a * (Math.cos(E_ast) - e);
+        const y_pf_ast = a * (Math.sqrt(1 - e * e) * Math.sin(E_ast));
+        const r_pf_ast = new THREE.Vector3(x_pf_ast, y_pf_ast, 0);
 
-    // Resize handling
-    window.addEventListener("resize", () => {
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-    });
-  </script>
-</body>
+        // Asteroid position ECI
+        const r_eci_ast = rotatePerifocalToECI(r_pf_ast, i, Omega, omega);
+        asteroid.position.copy(r_eci_ast);
+
+        // Check for collision with Earth
+        const distanceToEarth = r_eci_ast.length();
+        if (distanceToEarth <= 6371) {
+          // Earth's radius in km
+          const collisionPoint = r_eci_ast
+            .clone()
+            .normalize()
+            .multiplyScalar(6371); // Collision point on Earth's surface
+
+          createExplosion(collisionPoint); // Trigger explosion at the collision point
+          markDamageOnEarth(collisionPoint); // Mark damage on Earth's surface
+
+          scene.remove(asteroid); // Remove asteroid from the scene
+        }
+
+        // Update rocket position if launched
+        if (rocket) {
+          const direction = new THREE.Vector3()
+            .subVectors(asteroid.position, rocket.position)
+            .normalize();
+          rocket.position.add(direction.multiplyScalar(100)); // Reduced speed even more
+          checkRocketCollision();
+        }
+
+  // Moon orbit mean motion
+  const aMoon = moonOrbit.a;
+  const eMoon = moonOrbit.e;
+  const iMoon = moonOrbit.i;
+  const OMoon = moonOrbit.Omega;
+  const wMoon = moonOrbit.omega;
+  const M0Moon = moonOrbit.M0;
+  const nMoon = Math.sqrt(muEarth / (aMoon * aMoon * aMoon));
+  // Use the same scaledTime for the Moon's orbit
+  const M_moon = M0Moon + nMoon * ((t - t0) * scaledTime);
+  const E_moon = solveKepler(M_moon % (2 * Math.PI), eMoon);
+
+        // Moon position perifocal
+        const x_pf_moon = aMoon * (Math.cos(E_moon) - eMoon);
+        const y_pf_moon =
+          aMoon * (Math.sqrt(1 - eMoon * eMoon) * Math.sin(E_moon));
+        const r_pf_moon = new THREE.Vector3(x_pf_moon, y_pf_moon, 0);
+
+        // Moon position ECI
+        const r_eci_moon = rotatePerifocalToECI(r_pf_moon, iMoon, OMoon, wMoon);
+        moon.position.copy(r_eci_moon);
+
+        // Camera looks at Earth
+        camera.lookAt(earth.position);
+
+        // HUD stats
+        const rmag = r_eci_ast.length().toFixed(1);
+        stats.textContent =
+          `Asteroid orbit:\n` +
+          `a=${a} km  e=${e}  i=${parseFloat(ui.inc.value)}°\n` +
+          `Ω=${parseFloat(ui.raan.value)}°  ω=${parseFloat(
+            ui.argp.value
+          )}°  M=${(((M_ast * 180) / Math.PI) % 360).toFixed(1)}°\n` +
+          `r=${rmag} km  n=${nAst.toFixed(
+            6
+          )} rad/s  timeScale=${timeScale}x\n\n` +
+          `Moon orbit:\n` +
+          `a=${aMoon} km  e=${eMoon.toFixed(4)}  i=${(
+            (iMoon * 180) /
+            Math.PI
+          ).toFixed(2)}°\n` +
+          `M=${(((M_moon * 180) / Math.PI) % 360).toFixed(1)}°`;
+
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      // UI interactions
+      ["a", "e", "inc", "raan", "argp", "M0", "timeScale"].forEach((id) => {
+        ui[id].addEventListener("input", refreshOrbitLine);
+      });
+      refreshOrbitLine();
+
+      toggleBtn.addEventListener("click", () => {
+        running = !running;
+        toggleBtn.textContent = running ? "Pause" : "Resume";
+        if (running) t0 = performance.now() / 1000;
+      });
+
+      // Resize handling
+      window.addEventListener("resize", () => {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+      });
+    </script>
+  </body>
 </html>
