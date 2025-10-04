@@ -24,4 +24,4 @@ def update_kinetic_energy():
     return jsonify({"kinetic_energy": kinetic_energy_sci})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
