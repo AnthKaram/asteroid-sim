@@ -1,7 +1,8 @@
 # app.py
 from flask import Flask, render_template, request, jsonify
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="frontend/templates", static_folder="frontend/static")
 
 def calculate_kinetic_energy(mass, velocity):
     return 0.5 * mass * (velocity * 1000) ** 2  # Convert km/s to m/s for calculation
