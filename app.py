@@ -1,6 +1,7 @@
 # app.py
 from flask import Flask, render_template, request, jsonify
 import os
+import requests
 
 app = Flask(__name__, template_folder="frontend/templates", static_folder="frontend/static")
 
@@ -17,114 +18,134 @@ def index():
 
 @app.route("/preset-orbits")
 def preset_orbits():
-    real_asteroids = [
-        {
-            "name": "Bennu (101955)",
-            "description": "Near-Earth asteroid visited by OSIRIS-REx. High probability of Earth impact in 2182.",
-            "a": 1.126,  # AU
-            "e": 0.204,
-            "inc": 6.035,
-            "diameter": 0.49,  # km
-            "mass": 7.8e10,  # kg
-            "velocity": 28.5,  # km/s relative to Earth
-            "hazard": "high",
-            "image": "bennu.jpg",
-            "mission": "OSIRIS-REx"
-        },
-        {
-            "name": "Apophis (99942)",
-            "description": "Famous near-Earth asteroid that caused concern for 2029 close approach.",
-            "a": 0.922,  # AU
-            "e": 0.191,
-            "inc": 3.331,
-            "diameter": 0.37,  # km
-            "mass": 2.7e10,  # kg
-            "velocity": 30.7,
-            "hazard": "medium",
-            "image": "apophis.jpg",
-            "mission": "Multiple observations"
-        },
-        {
-            "name": "Ryugu (162173)",
-            "description": "Near-Earth asteroid visited by Hayabusa2. Carbonaceous composition.",
-            "a": 1.190,  # AU
-            "e": 0.190,
-            "inc": 5.884,
-            "diameter": 0.90,  # km
-            "mass": 4.5e11,  # kg
-            "velocity": 27.8,
-            "hazard": "low",
-            "image": "ryugu.jpg",
-            "mission": "Hayabusa2"
-        },
-        {
-            "name": "Didymos (65803)",
-            "description": "Binary asteroid system, target of DART mission to test planetary defense.",
-            "a": 1.644,  # AU
-            "e": 0.383,
-            "inc": 3.408,
-            "diameter": 0.78,  # km (primary)
-            "mass": 5.4e11,  # kg
-            "velocity": 24.2,
-            "hazard": "low",
-            "image": "didymos.jpg",
-            "mission": "DART"
-        },
-        {
-            "name": "Eros (433)",
-            "description": "First near-Earth asteroid discovered and first asteroid orbited by a spacecraft.",
-            "a": 1.458,  # AU
-            "e": 0.223,
-            "inc": 10.829,
-            "diameter": 16.84,  # km
-            "mass": 6.7e15,  # kg
-            "velocity": 24.6,
-            "hazard": "low",
-            "image": "eros.jpg",
-            "mission": "NEAR Shoemaker"
-        },
-        {
-            "name": "Itokawa (25143)",
-            "description": "First asteroid from which samples were returned to Earth (Hayabusa mission).",
-            "a": 1.324,  # AU
-            "e": 0.280,
-            "inc": 1.622,
-            "diameter": 0.33,  # km
-            "mass": 3.5e10,  # kg
-            "velocity": 25.4,
-            "hazard": "low",
-            "image": "itokawa.jpg",
-            "mission": "Hayabusa"
-        },
-        {
-            "name": "Vesta (4)",
-            "description": "One of the largest asteroids in the main belt, visited by Dawn spacecraft.",
-            "a": 2.362,  # AU
-            "e": 0.089,
-            "inc": 7.140,
-            "diameter": 525.4,  # km
-            "mass": 2.6e20,  # kg
-            "velocity": 19.3,
-            "hazard": "none",
-            "image": "vesta.jpg",
-            "mission": "Dawn"
-        },
-        {
-            "name": "Ceres (1)",
-            "description": "Largest object in the asteroid belt, now classified as a dwarf planet.",
-            "a": 2.766,  # AU
-            "e": 0.076,
-            "inc": 10.594,
-            "diameter": 939.4,  # km
-            "mass": 9.4e20,  # kg
-            "velocity": 17.9,
-            "hazard": "none",
-            "image": "ceres.jpg",
-            "mission": "Dawn"
-        }
-    ]
+    # NASA JPL Small Body Database API endpoint
+    BASE_URL = "https://ssd-api.jpl.nasa.gov/sbdb.api"
+    
+    # Asteroid SPK-ID mapping (NASA's internal IDs)
+    asteroid_ids = {
+        "Bennu (101955)": "2101955",
+        "Apophis (99942)": "2099942", 
+        "Ryugu (162173)": "2162173",
+        "Didymos (65803)": "2065803",
+        "Eros (433)": "2000433",
+        "Itokawa (25143)": "2025143",
+        "Vesta (4)": "2000004",
+        "Ceres (1)": "2000001"
+    }
+    
+    real_asteroids = []
+    
+    for name, spk_id in asteroid_ids.items():
+        try:
+            print(f"🔄 FETCHING data for {name} (ID: {spk_id})...")
+            
+            # Fetch orbital data from NASA JPL API
+            url = f"{BASE_URL}?sstr={spk_id}"
+            print(f"   📡 API URL: {url}")
+            
+            response = requests.get(url)
+            print(f"   ✅ Response status: {response.status_code}")
+            
+            data = response.json()
+            print(f"   📊 Data received for {name}")
+            
+            # Extract orbital elements
+            orbit_data = data.get('orbit', {})
+            elements = orbit_data.get('elements', [])
+            
+            # Convert elements list to dictionary for easy access
+            elements_dict = {elem['name']: elem['value'] for elem in elements}
+            print(f"   🌍 Orbital elements found: {list(elements_dict.keys())}")
+            
+            # Extract physical parameters
+            physical_data = data.get('physical_parameters', [])
+            physical_dict = {param['name']: param['value'] for param in physical_data}
+            print(f"   📏 Physical parameters found: {list(physical_dict.keys())}")
+            
+            # Get diameter (convert from meters to km)
+            diameter = None
+            if 'diameter' in physical_dict:
+                diameter = float(physical_dict['diameter']) / 1000  # Convert m to km
+                print(f"   📐 Diameter: {diameter} km")
+            elif 'A' in physical_dict:  # Sometimes diameter is labeled as 'A'
+                diameter = float(physical_dict['A']) / 1000
+                print(f"   📐 Diameter (from A): {diameter} km")
+            else:
+                print("   ❌ No diameter data found")
+            
+            # Get mass (convert from kg if available)
+            mass = None
+            if 'mass' in physical_dict:
+                mass = float(physical_dict['mass'])
+                print(f"   ⚖️ Mass: {mass} kg")
+            else:
+                print("   ❌ No mass data found")
+            
+            # Extract orbital parameters
+            a = float(elements_dict.get('a', 0))  # Semi-major axis (AU)
+            e = float(elements_dict.get('e', 0))  # Eccentricity
+            inc = float(elements_dict.get('i', 0))  # Inclination (degrees)
+            
+            print(f"   🛰️ Semi-major axis (a): {a} AU")
+            print(f"   📈 Eccentricity (e): {e}")
+            print(f"   📐 Inclination (i): {inc}°")
+            
+            # Calculate approximate velocity (simplified)
+            GM = 1.32712440018e20  # m^3/s^2
+            a_m = a * 1.496e11  # Convert AU to meters
+            orbital_velocity = (GM / a_m) ** 0.5 / 1000  # Convert to km/s
+            print(f"   🚀 Orbital velocity: {orbital_velocity} km/s")
+            
+            # Get additional info
+            full_name = data.get('object', {}).get('fullname', name)
+            neo_flag = data.get('object', {}).get('neo', False)
+            pha_flag = data.get('object', {}).get('pha', False)
+            
+            print(f"   🎯 NEO: {neo_flag}, PHA: {pha_flag}")
+            
+            # Determine hazard level
+            if pha_flag:
+                hazard = "high"
+            elif neo_flag:
+                hazard = "medium" 
+            else:
+                hazard = "low"
+            
+            print(f"   ⚠️ Hazard level: {hazard}")
+            
+            asteroid = {
+                "name": full_name,
+                "description": f"{'Potentially Hazardous ' if pha_flag else ''}{'Near-Earth ' if neo_flag else ''}Asteroid - Data from NASA JPL",
+                "a": round(a, 3),
+                "e": round(e, 3),
+                "inc": round(inc, 3),
+                "diameter": round(diameter, 2) if diameter else None,
+                "mass": mass,
+                "velocity": round(orbital_velocity, 1),
+                "hazard": hazard,
+                "image": f"{name.split(' ')[0].lower()}.jpg",
+                "mission": "Multiple observations"
+            }
+            
+            real_asteroids.append(asteroid)
+            print(f"   ✅ Successfully processed {name}\n")
+            
+        except Exception as e:
+            print(f"   ❌ ERROR fetching data for {name}: {e}")
+            print(f"   📋 Response content: {response.text if 'response' in locals() else 'No response'}\n")
+            # Fallback to placeholder data if API fails
+            real_asteroids.append({
+                "name": name,
+                "description": "Data temporarily unavailable",
+                "a": 0, "e": 0, "inc": 0, "diameter": 0, "mass": 0, "velocity": 0,
+                "hazard": "unknown", "image": "default.jpg", "mission": "Unknown"
+            })
+    
+    print(f"🎯 FINAL RESULT: Processed {len(real_asteroids)} asteroids")
+    for asteroid in real_asteroids:
+        print(f"   - {asteroid['name']}: a={asteroid['a']} AU, e={asteroid['e']}, inc={asteroid['inc']}°")
+    
     return render_template("preset.html", asteroids=real_asteroids)
-
 
 @app.route("/update-kinetic-energy")
 def update_kinetic_energy():
