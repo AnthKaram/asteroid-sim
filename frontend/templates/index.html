@@ -14,7 +14,7 @@
             <a href="/">Customize Your Asteroid</a>
           </li>
           <li>
-            <a href="/Preset.htm">Choose A Pre-Set</a>
+            <a href="/preset-orbits ">Choose A Pre-Set</a>
           </li>
         </ul>
       </nav>
@@ -1364,6 +1364,45 @@ document.addEventListener('DOMContentLoaded', () => {
         physicsIntegration = new PhysicsGMATIntegration();
         physicsIntegration.init();
     }, 1000);
+});
+// Add this to your main page JavaScript
+function loadSelectedPreset() {
+    const presetData = localStorage.getItem('selectedPreset');
+    if (presetData) {
+        const preset = JSON.parse(presetData);
+        
+        // Update all UI elements with preset values
+        ui.a.value = preset.a;
+        ui.e.value = preset.e;
+        ui.inc.value = preset.inc;
+        ui.raan.value = preset.raan;
+        ui.argp.value = preset.argp;
+        ui.M0.value = preset.M0;
+        ui.mass.value = preset.mass;
+        ui.velocity.value = preset.velocity;
+        
+        // Update displays
+        document.getElementById('velocity-value').textContent = preset.velocity;
+        updateMassDisplay(preset.mass);
+        updateVelocity(preset.velocity);
+        
+        // Refresh orbit line
+        refreshOrbitLine();
+        
+        // Clear the preset from storage
+        localStorage.removeItem('selectedPreset');
+        
+        // Show notification
+        setTimeout(() => {
+            alert('Preset loaded successfully!');
+        }, 500);
+    }
+}
+
+// Call this when your main page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Your existing code...
+    loadSelectedPreset();
 });
     </script>
   </body>

@@ -15,6 +15,11 @@ def index():
     kinetic_energy_sci = "{:.2e}".format(kinetic_energy)  # Format in scientific notation
     return render_template("index.html", kinetic_energy=kinetic_energy_sci)
 
+@app.route("/preset-orbits")
+def preset_orbits():
+    return render_template("preset.html")
+
+
 @app.route("/update-kinetic-energy")
 def update_kinetic_energy():
     mass = 1000  # in kilograms

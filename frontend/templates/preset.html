@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Asteroid Presets</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #ff8a00, #e52e71);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+        
+        nav {
+            margin-top: 20px;
+        }
+        
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+        }
+        
+        nav li {
+            margin: 0 15px;
+        }
+        
+        nav a {
+            color: #4db8ff;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        nav a:hover {
+            background: rgba(77, 184, 255, 0.2);
+        }
+        
+        .presets-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .preset-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .preset-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .preset-visual {
+            height: 200px;
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .asteroid-3d {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #8B4513, #CD853F, #D2691E);
+            box-shadow: 
+                inset -20px -20px 30px rgba(0, 0, 0, 0.5),
+                inset 10px 10px 20px rgba(255, 255, 255, 0.2);
+            position: relative;
+            animation: rotate 20s infinite linear;
+        }
+        
+        .asteroid-3d::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 25%;
+            width: 20px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+        }
+        
+        .asteroid-3d::after {
+            content: '';
+            position: absolute;
+            bottom: 20%;
+            right: 30%;
+            width: 15px;
+            height: 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 50%;
+        }
+        
+        .preset-info {
+            padding: 20px;
+        }
+        
+        .preset-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #ffcc00;
+        }
+        
+        .preset-description {
+            color: #ccc;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .preset-params {
+            margin-top: 15px;
+        }
+        
+        .param-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .param-name {
+            color: #aaa;
+        }
+        
+        .param-value {
+            font-weight: 600;
+            color: #4db8ff;
+        }
+        
+        .select-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, #ff8a00, #e52e71);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+        }
+        
+        .select-btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 5px 15px rgba(229, 46, 113, 0.4);
+        }
+        
+        .danger {
+            border-left: 5px solid #e52e71;
+        }
+        
+        .safe {
+            border-left: 5px solid #4db8ff;
+        }
+        
+        .warning {
+            border-left: 5px solid #ffcc00;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .presets-container {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Asteroid Presets</h1>
+        <p class="subtitle">Choose from pre-configured asteroid scenarios</p>
+        <nav>
+            <ul>
+                <li><a href="/">Customize Your Asteroid</a></li>
+                <li><a href="/preset-orbits" style="background: rgba(77, 184, 255, 0.2);">Choose A Pre-Set</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <div class="presets-container">
+        <!-- Near-Earth Asteroid -->
+        <div class="preset-card warning">
+            <div class="preset-visual">
+                <div class="asteroid-3d" style="width: 100px; height: 100px;"></div>
+            </div>
+            <div class="preset-info">
+                <h2 class="preset-title">Near-Earth Asteroid</h2>
+                <p class="preset-description">A close-approach asteroid with a moderately elliptical orbit that passes near Earth.</p>
+                <div class="preset-params">
+                    <div class="param-row">
+                        <span class="param-name">Semi-Major Axis:</span>
+                        <span class="param-value">15,000 km</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Eccentricity:</span>
+                        <span class="param-value">0.45</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Inclination:</span>
+                        <span class="param-value">25°</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Mass:</span>
+                        <span class="param-value">5.0×10⁶ kg</span>
+                    </div>
+                </div>
+                <button class="select-btn" onclick="selectPreset('nearEarth')">Select This Asteroid</button>
+            </div>
+        </div>
+        
+        <!-- High-Eccentricity Asteroid -->
+        <div class="preset-card danger">
+            <div class="preset-visual">
+                <div class="asteroid-3d" style="width: 130px; height: 130px; background: linear-gradient(45deg, #8B0000, #B22222, #DC143C);"></div>
+            </div>
+            <div class="preset-info">
+                <h2 class="preset-title">High-Eccentricity Asteroid</h2>
+                <p class="preset-description">An asteroid with a highly elliptical orbit that brings it very close to Earth at periapsis.</p>
+                <div class="preset-params">
+                    <div class="param-row">
+                        <span class="param-name">Semi-Major Axis:</span>
+                        <span class="param-value">25,000 km</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Eccentricity:</span>
+                        <span class="param-value">0.75</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Inclination:</span>
+                        <span class="param-value">10°</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Mass:</span>
+                        <span class="param-value">2.5×10⁷ kg</span>
+                    </div>
+                </div>
+                <button class="select-btn" onclick="selectPreset('highEccentricity')">Select This Asteroid</button>
+            </div>
+        </div>
+        
+        <!-- Circular Orbit Asteroid -->
+        <div class="preset-card safe">
+            <div class="preset-visual">
+                <div class="asteroid-3d" style="width: 90px; height: 90px; background: linear-gradient(45deg, #2E8B57, #3CB371, #66CDAA);"></div>
+            </div>
+            <div class="preset-info">
+                <h2 class="preset-title">Circular Orbit Asteroid</h2>
+                <p class="preset-description">A stable asteroid in a nearly circular orbit with minimal eccentricity.</p>
+                <div class="preset-params">
+                    <div class="param-row">
+                        <span class="param-name">Semi-Major Axis:</span>
+                        <span class="param-value">30,000 km</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Eccentricity:</span>
+                        <span class="param-value">0.05</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Inclination:</span>
+                        <span class="param-value">5°</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Mass:</span>
+                        <span class="param-value">1.0×10⁶ kg</span>
+                    </div>
+                </div>
+                <button class="select-btn" onclick="selectPreset('circularOrbit')">Select This Asteroid</button>
+            </div>
+        </div>
+        
+        <!-- Inclined Orbit Asteroid -->
+        <div class="preset-card warning">
+            <div class="preset-visual">
+                <div class="asteroid-3d" style="width: 110px; height: 110px; background: linear-gradient(45deg, #4B0082, #8A2BE2, #9370DB);"></div>
+            </div>
+            <div class="preset-info">
+                <h2 class="preset-title">Inclined Orbit Asteroid</h2>
+                <p class="preset-description">An asteroid with a highly inclined orbit relative to Earth's orbital plane.</p>
+                <div class="preset-params">
+                    <div class="param-row">
+                        <span class="param-name">Semi-Major Axis:</span>
+                        <span class="param-value">20,000 km</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Eccentricity:</span>
+                        <span class="param-value">0.3</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Inclination:</span>
+                        <span class="param-value">60°</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Mass:</span>
+                        <span class="param-value">8.0×10⁶ kg</span>
+                    </div>
+                </div>
+                <button class="select-btn" onclick="selectPreset('inclinedOrbit')">Select This Asteroid</button>
+            </div>
+        </div>
+        
+        <!-- Distant Asteroid -->
+        <div class="preset-card safe">
+            <div class="preset-visual">
+                <div class="asteroid-3d" style="width: 80px; height: 80px; background: linear-gradient(45deg, #2F4F4F, #708090, #778899);"></div>
+            </div>
+            <div class="preset-info">
+                <h2 class="preset-title">Distant Asteroid</h2>
+                <p class="preset-description">A far-orbiting asteroid with minimal risk of Earth impact.</p>
+                <div class="preset-params">
+                    <div class="param-row">
+                        <span class="param-name">Semi-Major Axis:</span>
+                        <span class="param-value">50,000 km</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Eccentricity:</span>
+                        <span class="param-value">0.2</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Inclination:</span>
+                        <span class="param-value">15°</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Mass:</span>
+                        <span class="param-value">3.0×10⁶ kg</span>
+                    </div>
+                </div>
+                <button class="select-btn" onclick="selectPreset('distantAsteroid')">Select This Asteroid</button>
+            </div>
+        </div>
+        
+        <!-- Impact Trajectory -->
+        <div class="preset-card danger">
+            <div class="preset-visual">
+                <div class="asteroid-3d" style="width: 140px; height: 140px; background: linear-gradient(45deg, #8B0000, #FF0000, #FF4500);"></div>
+            </div>
+            <div class="preset-info">
+                <h2 class="preset-title">Impact Trajectory</h2>
+                <p class="preset-description">A high-risk asteroid on a collision course with Earth. Deflection required!</p>
+                <div class="preset-params">
+                    <div class="param-row">
+                        <span class="param-name">Semi-Major Axis:</span>
+                        <span class="param-value">12,000 km</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Eccentricity:</span>
+                        <span class="param-value">0.6</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Inclination:</span>
+                        <span class="param-value">8°</span>
+                    </div>
+                    <div class="param-row">
+                        <span class="param-name">Mass:</span>
+                        <span class="param-value">1.5×10⁷ kg</span>
+                    </div>
+                </div>
+                <button class="select-btn" onclick="selectPreset('impactTrajectory')">Select This Asteroid</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Asteroid Simulation Project &copy; 2023 | Select a preset to load it in the simulation</p>
+    </footer>
+    
+    <script>
+        // Preset configurations
+        const presets = {
+            nearEarth: {
+                a: 15000,
+                e: 0.45,
+                inc: 25,
+                raan: 0,
+                argp: 0,
+                M0: 0,
+                mass: 6,
+                velocity: 11
+            },
+            highEccentricity: {
+                a: 25000,
+                e: 0.75,
+                inc: 10,
+                raan: 0,
+                argp: 0,
+                M0: 0,
+                mass: 7.4,
+                velocity: 13
+            },
+            circularOrbit: {
+                a: 30000,
+                e: 0.05,
+                inc: 5,
+                raan: 0,
+                argp: 0,
+                M0: 0,
+                mass: 6,
+                velocity: 10
+            },
+            inclinedOrbit: {
+                a: 20000,
+                e: 0.3,
+                inc: 60,
+                raan: 0,
+                argp: 0,
+                M0: 0,
+                mass: 6.9,
+                velocity: 12
+            },
+            distantAsteroid: {
+                a: 50000,
+                e: 0.2,
+                inc: 15,
+                raan: 0,
+                argp: 0,
+                M0: 0,
+                mass: 6.5,
+                velocity: 8
+            },
+            impactTrajectory: {
+                a: 12000,
+                e: 0.6,
+                inc: 8,
+                raan: 40,
+                argp: 20,
+                M0: 0,
+                mass: 7.2,
+                velocity: 15
+            }
+        };
+
+        function selectPreset(presetId) {
+            const preset = presets[presetId];
+            if (preset) {
+                // Store the preset in localStorage
+                localStorage.setItem('selectedPreset', JSON.stringify(preset));
+                
+                // Redirect to main simulation page
+                window.location.href = '/';
+                
+                // Show confirmation
+                alert(`Preset "${presetId}" selected! Loading simulation...`);
+            }
+        }
+        
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.preset-card');
+            
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-10px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
