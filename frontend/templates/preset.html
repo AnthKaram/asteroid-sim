@@ -281,88 +281,30 @@
         <p>Asterix Meteor Madness &copy; 2025</p>
     </footer>
     
+    <script id="asteroid-data" type="application/json">
+{{ asteroids | tojson | safe }}
+</script>
+
+<script>
+window.asteroids = JSON.parse(document.getElementById('asteroid-data').textContent);
+</script>
     <script>
-        // Sample asteroid data
-        const asteroids = [
-            {
-                name: "Ceres",
-                description: "The largest object in the asteroid belt between Mars and Jupiter. It's classified as a dwarf planet.",
-                a: 2.766,
-                e: 0.076,
-                inc: 10.59,
-                diameter: 939.4,
-                mass: 9.393e20,
-                velocity: 17.9,
-                mission: "Dawn",
-                hazard: "none"
-            },
-            {
-                name: "Vesta",
-                description: "One of the largest asteroids in the Solar System, visited by NASA's Dawn spacecraft.",
-                a: 2.362,
-                e: 0.089,
-                inc: 7.14,
-                diameter: 525.4,
-                mass: 2.590e20,
-                velocity: 19.3,
-                mission: "Dawn",
-                hazard: "low"
-            },
-            {
-                name: "Bennu",
-                description: "Near-Earth asteroid studied by NASA's OSIRIS-REx mission. It has a chance of impacting Earth in the late 22nd century.",
-                a: 1.126,
-                e: 0.204,
-                inc: 6.03,
-                diameter: 0.49,
-                mass: 7.329e10,
-                velocity: 28.1,
-                mission: "OSIRIS-REx",
-                hazard: "high"
-            },
-            {
-                name: "Ryugu",
-                description: "Near-Earth asteroid visited by Japan's Hayabusa2 mission. It's a carbonaceous asteroid rich in organic materials.",
-                a: 1.190,
-                e: 0.190,
-                inc: 5.88,
-                diameter: 0.87,
-                mass: 4.500e11,
-                velocity: 27.4,
-                mission: "Hayabusa2",
-                hazard: "medium"
-            },
-            {
-                name: "Eros",
-                description: "The first near-Earth asteroid to be orbited by a spacecraft (NEAR Shoemaker). It's an elongated S-type asteroid.",
-                a: 1.458,
-                e: 0.223,
-                inc: 10.83,
-                diameter: 16.84,
-                mass: 6.687e15,
-                velocity: 24.4,
-                mission: "NEAR",
-                hazard: "low"
-            },
-            {
-                name: "Itokawa",
-                description: "A near-Earth asteroid visited by Japan's Hayabusa mission. It has a rubble pile structure.",
-                a: 1.324,
-                e: 0.280,
-                inc: 1.62,
-                diameter: 0.33,
-                mass: 3.510e10,
-                velocity: 25.4,
-                mission: "Hayabusa",
-                hazard: "low"
-            }
-        ];
+
+function safeNum(value, decimals = 2) {
+    if (value === null || value === undefined || isNaN(value)) return "N/A";
+    return Number(value).toFixed(decimals);
+}
+
+function safeExp(value, decimals = 1) {
+    if (value === null || value === undefined || isNaN(value)) return "N/A";
+    return Number(value).toExponential(decimals);
+}
 
         // Function to generate asteroid cards
         function generateAsteroidCards() {
             const container = document.getElementById('asteroids-container');
             
-            asteroids.forEach(asteroid => {
+            window.asteroids.forEach(asteroid => {
                 // Scale the asteroid visualization based on actual size
                 let size = asteroid.diameter * 10;
                 size = Math.max(size, 50);
@@ -391,27 +333,31 @@
                         <div class="preset-params">
                             <div class="param-row">
                                 <span class="param-name">Semi-Major Axis:</span>
-                                <span class="param-value">${asteroid.a.toFixed(3)} AU</span>
+                                <span class="param-value">${safeNum(asteroid.a, 3)} AU</span>
+
                             </div>
                             <div class="param-row">
                                 <span class="param-name">Eccentricity:</span>
-                                <span class="param-value">${asteroid.e.toFixed(3)}</span>
+                                <span class="param-value">${safeNum(asteroid.e, 3)}</span>
+
                             </div>
                             <div class="param-row">
                                 <span class="param-name">Inclination:</span>
-                                <span class="param-value">${asteroid.inc.toFixed(2)}°</span>
+                                <span class="param-value">${safeNum(asteroid.inc, 2)}°</span>
+
                             </div>
                             <div class="param-row">
                                 <span class="param-name">Diameter:</span>
-                                <span class="param-value">${asteroid.diameter.toFixed(2)} km</span>
+                                <span class="param-value">${safeNum(asteroid.diameter, 2)} km</span>
+
                             </div>
                             <div class="param-row">
                                 <span class="param-name">Mass:</span>
-                                <span class="param-value">${asteroid.mass.toExponential(1)} kg</span>
+                                <span class="param-value">${safeExp(asteroid.mass, 1)} kg</span>
                             </div>
                             <div class="param-row">
                                 <span class="param-name">Relative Velocity:</span>
-                                <span class="param-value">${asteroid.velocity.toFixed(1)} km/s</span>
+                                <span class="param-value">${safeNum(asteroid.velocity, 1)} km/s</span>
                             </div>
                         </div>
                             <button class="select-btn" onclick="selectPreset(${JSON.stringify(asteroid).replace(/"/g, '&quot;')})">

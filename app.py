@@ -114,6 +114,7 @@ def preset_orbits():
             print(f"   ⚠️ Hazard level: {hazard}")
             
             asteroid = {
+                "nasa_id": spk_id,  # <-- ADD THIS LINE
                 "name": full_name,
                 "description": f"{'Potentially Hazardous ' if pha_flag else ''}{'Near-Earth ' if neo_flag else ''}Asteroid - Data from NASA JPL",
                 "a": round(a, 3),
