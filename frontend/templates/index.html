@@ -1200,118 +1200,113 @@ class PhysicsGMATIntegration {
     }
 
     addPhysicsControls() {
-        const physicsDiv = document.createElement('div');
-        physicsDiv.className = 'physics-controls';
-        physicsDiv.innerHTML = `
-            <div style="
-                font-weight: 600; 
-                margin-bottom: 12px; 
-                margin-top: 20px; 
-                border-top: 2px solid #4CAF50; 
-                padding-top: 12px;
-                color: #4CAF50;
-                font-size: 14px;
+    // Create GMAT controls container for top right position
+    const gmatDiv = document.createElement('div');
+    gmatDiv.className = 'gmat-controls';
+    gmatDiv.innerHTML = `
+        <div style="
+            font-weight: 600; 
+            margin-bottom: 12px; 
+            color: #4CAF50;
+            font-size: 14px;
+        ">
+            🚀 GMAT PHYSICS INTEGRATION
+        </div>
+        
+        <!-- On/Off Toggle Switch -->
+        <div style="margin-bottom: 12px;">
+            <button id="toggleGMAT" style="
+                width: 100%;
+                padding: 10px;
+                background: #f44336;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: bold;
+                font-size: 12px;
+                margin-bottom: 8px;
             ">
-                🚀 GMAT PHYSICS INTEGRATION
-            </div>
-            
-            <!-- On/Off Toggle Switch -->
-            <div style="margin-bottom: 12px;">
-                <button id="toggleGMAT" style="
-                    width: 100%;
-                    padding: 10px;
-                    background: #f44336;
-                    color: white;
-                    border: none;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    font-weight: bold;
-                    font-size: 12px;
-                    margin-bottom: 8px;
-                ">
-                    🔴 GMAT OFF | Switch to GMAT Mode
-                </button>
-            </div>
-            
-            <!-- Control Buttons -->
-            <div style="display: flex; gap: 5px; margin-bottom: 8px;">
-                <button id="startGMAT" style="
-                    flex: 1;
-                    padding: 6px 8px;
-                    background: #4CAF50;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 11px;
-                ">
-                    Start Sim
-                </button>
-                <button id="stopGMAT" style="
-                    flex: 1;
-                    padding: 6px 8px;
-                    background: #ff9800;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 11px;
-                ">
-                    Stop Sim
-                </button>
-                <button id="exportGMAT" style="
-                    flex: 1;
-                    padding: 6px 8px;
-                    background: #2196F3;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 11px;
-                ">
-                    Export
-                </button>
-            </div>
-            
-            <!-- Status Display -->
-            <div id="physicsStatus" style="
-                font-size: 11px; 
-                padding: 8px; 
-                background: #5a2d2d; 
-                color: white; 
-                border-radius: 4px; 
-                text-align: center;
+                🔴 GMAT OFF | Switch to GMAT Mode
+            </button>
+        </div>
+        
+        <!-- Control Buttons -->
+        <div style="display: flex; gap: 5px; margin-bottom: 8px;">
+            <button id="startGMAT" style="
+                flex: 1;
+                padding: 6px 8px;
+                background: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 11px;
             ">
-                Status: Initializing...
-            </div>
-        `;
+                Start Sim
+            </button>
+            <button id="stopGMAT" style="
+                flex: 1;
+                padding: 6px 8px;
+                background: #ff9800;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 11px;
+            ">
+                Stop Sim
+            </button>
+            <button id="exportGMAT" style="
+                flex: 1;
+                padding: 6px 8px;
+                background: #2196F3;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 11px;
+            ">
+                Export
+            </button>
+        </div>
         
-        // Add to your existing UI container
-        const uiContainer = document.getElementById('ui');
-        if (uiContainer) {
-            uiContainer.appendChild(physicsDiv);
-        }
-        
-        // Add event listeners
-        document.getElementById('toggleGMAT').addEventListener('click', () => {
-            this.toggleGMATIntegration();
-        });
-        
-        document.getElementById('startGMAT').addEventListener('click', () => {
-            this.startGMATSimulation();
-        });
-        
-        document.getElementById('stopGMAT').addEventListener('click', () => {
-            this.stopGMATSimulation();
-        });
-        
-        document.getElementById('exportGMAT').addEventListener('click', () => {
-            this.exportToGMAT();
-        });
-        
-        // Initialize button states
-        this.updateControlButtons();
-    }
+        <!-- Status Display -->
+        <div id="physicsStatus" style="
+            font-size: 11px; 
+            padding: 8px; 
+            background: #5a2d2d; 
+            color: white; 
+            border-radius: 4px; 
+            text-align: center;
+        ">
+            Status: Initializing...
+        </div>
+    `;
+    
+    // Add to body for top right positioning (not to the main UI container)
+    document.body.appendChild(gmatDiv);
+    
+    // Add event listeners
+    document.getElementById('toggleGMAT').addEventListener('click', () => {
+        this.toggleGMATIntegration();
+    });
+    
+    document.getElementById('startGMAT').addEventListener('click', () => {
+        this.startGMATSimulation();
+    });
+    
+    document.getElementById('stopGMAT').addEventListener('click', () => {
+        this.stopGMATSimulation();
+    });
+    
+    document.getElementById('exportGMAT').addEventListener('click', () => {
+        this.exportToGMAT();
+    });
+    
+    // Initialize button states
+    this.updateControlButtons();
+}
 
     exportToGMAT() {
         const elements = getElements();
