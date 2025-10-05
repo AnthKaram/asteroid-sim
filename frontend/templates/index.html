@@ -19,6 +19,32 @@
         </ul>
       </nav>
     </header>
+       <!-- Add the Visualize Impact Map Button -->
+    <div class="bottom-right">
+      <button id="toggle">Pause</button>
+      <button id="launch">Launch Rocket</button>
+      <button id="showImpactMap">Visualize Impact Map</button>
+      <div id="stats"></div>
+    </div>
+
+    <!-- Impact Map Container -->
+    <div id="impactMap">
+      <canvas id="mapCanvas"></canvas>
+      <div class="map-legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background: red;"></div>
+          <span>Severe Damage (R<sub>red</sub>)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: orange;"></div>
+          <span>Moderate Damage (R<sub>orange</sub>)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: green;"></div>
+          <span>Light Damage (R<sub>green</sub>)</span>
+        </div>
+      </div>
+    </div>
     <div id="ui">
  
       <div style="font-weight: 600; margin-bottom: 8px">
@@ -97,6 +123,110 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
     <script>
+      // Add this function to calculate and display the impact map
+      function showImpactMap() {
+        // Calculate kinetic energy
+        const mass = Math.pow(10, parseFloat(document.getElementById('mass').value));
+        const velocity = parseFloat(document.getElementById('velocity').value) * 1000; // Convert to m/s
+        const E = 0.5 * mass * velocity * velocity; // Kinetic energy in Joules
+        
+        // Calculate C and radii
+        const C = E / (4.184 * Math.pow(10, 15));
+        const Rred = 0.5 * C;
+        const Rorange = 3 * C;
+        const Rgreen = 8 * C;
+        
+        // Show the map container
+        const impactMap = document.getElementById('impactMap');
+        impactMap.style.display = 'block';
+        
+        // Draw the map
+        const canvas = document.getElementById('mapCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas dimensions
+        canvas.width = 300;
+        canvas.height = 300;
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Calculate scale to fit the largest circle
+        const maxRadius = Math.max(Rgreen, Rorange, Rred);
+        const scale = (canvas.width / 2 - 20) / maxRadius;
+        
+        // Center of the canvas
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        
+        // Draw circles
+        // Green circle (outer)
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, Rgreen * scale, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+        ctx.fill();
+        ctx.strokeStyle = 'green';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Orange circle (middle)
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, Rorange * scale, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(255, 165, 0, 0.4)';
+        ctx.fill();
+        ctx.strokeStyle = 'orange';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Red circle (inner)
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, Rred * scale, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+        ctx.fill();
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Add center point
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 3, 0, 2 * Math.PI);
+        ctx.fillStyle = 'black';
+        ctx.fill();
+        
+        // Add labels
+        ctx.fillStyle = 'white';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        
+        ctx.fillText(`Impact Center`, centerX, centerY - Rred * scale - 10);
+        ctx.fillText(`R_red: ${Rred.toFixed(2)} km`, centerX, centerY - Rred * scale - 25);
+        ctx.fillText(`R_orange: ${Rorange.toFixed(2)} km`, centerX, centerY - Rorange * scale - 10);
+        ctx.fillText(`R_green: ${Rgreen.toFixed(2)} km`, centerX, centerY - Rgreen * scale - 10);
+        
+        // Add energy info
+        ctx.fillText(`Energy: ${E.toExponential(2)} J`, centerX, 20);
+        ctx.fillText(`C = ${C.toFixed(2)} km`, centerX, 35);
+      }
+      
+      // Add event listener for the button
+      document.addEventListener('DOMContentLoaded', () => {
+        const showImpactMapBtn = document.getElementById('showImpactMap');
+        if (showImpactMapBtn) {
+          showImpactMapBtn.addEventListener('click', showImpactMap);
+        }
+        
+        // Close map when clicking outside
+        document.addEventListener('click', (e) => {
+          const impactMap = document.getElementById('impactMap');
+          if (impactMap.style.display === 'block' && 
+              !impactMap.contains(e.target) && 
+              e.target.id !== 'showImpactMap') {
+            impactMap.style.display = 'none';
+          }
+        });
+      });
+    </script>
+   <script>
       document.addEventListener('DOMContentLoaded', () => {
           const timeScaleInput = document.getElementById('timeScale');
           const timeScaleDisplay = document.getElementById('timeScaleDisplay');
