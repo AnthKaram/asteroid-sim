@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Asteroid Presets</title>
+    <title>Real Asteroid Presets</title>
     <style>
         * {
             margin: 0;
@@ -71,7 +71,7 @@
         
         .presets-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 25px;
             max-width: 1400px;
             margin: 0 auto;
@@ -101,8 +101,6 @@
         }
         
         .asteroid-3d {
-            width: 120px;
-            height: 120px;
             border-radius: 50%;
             background: linear-gradient(45deg, #8B4513, #CD853F, #D2691E);
             box-shadow: 
@@ -134,6 +132,45 @@
             border-radius: 50%;
         }
         
+        .mission-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(77, 184, 255, 0.9);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .hazard-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .hazard-high {
+            background: rgba(229, 46, 113, 0.9);
+        }
+        
+        .hazard-medium {
+            background: rgba(255, 204, 0, 0.9);
+            color: #333;
+        }
+        
+        .hazard-low {
+            background: rgba(77, 184, 255, 0.9);
+        }
+        
+        .hazard-none {
+            background: rgba(76, 175, 80, 0.9);
+        }
+        
         .preset-info {
             padding: 20px;
         }
@@ -148,6 +185,7 @@
             color: #ccc;
             margin-bottom: 15px;
             line-height: 1.5;
+            font-size: 0.95rem;
         }
         
         .preset-params {
@@ -164,11 +202,13 @@
         
         .param-name {
             color: #aaa;
+            font-size: 0.9rem;
         }
         
         .param-value {
             font-weight: 600;
             color: #4db8ff;
+            font-size: 0.9rem;
         }
         
         .select-btn {
@@ -191,18 +231,6 @@
             box-shadow: 0 5px 15px rgba(229, 46, 113, 0.4);
         }
         
-        .danger {
-            border-left: 5px solid #e52e71;
-        }
-        
-        .safe {
-            border-left: 5px solid #4db8ff;
-        }
-        
-        .warning {
-            border-left: 5px solid #ffcc00;
-        }
-        
         @keyframes rotate {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
@@ -214,6 +242,12 @@
             padding: 20px;
             color: #777;
             font-size: 0.9rem;
+        }
+        
+        .size-comparison {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 5px;
         }
         
         @media (max-width: 768px) {
@@ -229,283 +263,233 @@
 </head>
 <body>
     <header>
-        <h1>Asteroid Presets</h1>
-        <p class="subtitle">Choose from pre-configured asteroid scenarios</p>
+        <h1>Real Asteroid Presets</h1>
+        <p class="subtitle">Explore actual asteroids from our solar system with real orbital data</p>
         <nav>
             <ul>
                 <li><a href="/">Customize Your Asteroid</a></li>
-                <li><a href="/preset-orbits" style="background: rgba(77, 184, 255, 0.2);">Choose A Pre-Set</a></li>
+                <li><a href="/preset-orbits" style="background: rgba(77, 184, 255, 0.2);">Real Asteroids</a></li>
             </ul>
         </nav>
     </header>
     
-    <div class="presets-container">
-        <!-- Near-Earth Asteroid -->
-        <div class="preset-card warning">
-            <div class="preset-visual">
-                <div class="asteroid-3d" style="width: 100px; height: 100px;"></div>
-            </div>
-            <div class="preset-info">
-                <h2 class="preset-title">Near-Earth Asteroid</h2>
-                <p class="preset-description">A close-approach asteroid with a moderately elliptical orbit that passes near Earth.</p>
-                <div class="preset-params">
-                    <div class="param-row">
-                        <span class="param-name">Semi-Major Axis:</span>
-                        <span class="param-value">15,000 km</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Eccentricity:</span>
-                        <span class="param-value">0.45</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Inclination:</span>
-                        <span class="param-value">25°</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Mass:</span>
-                        <span class="param-value">5.0×10⁶ kg</span>
-                    </div>
-                </div>
-                <button class="select-btn" onclick="selectPreset('nearEarth')">Select This Asteroid</button>
-            </div>
-        </div>
-        
-        <!-- High-Eccentricity Asteroid -->
-        <div class="preset-card danger">
-            <div class="preset-visual">
-                <div class="asteroid-3d" style="width: 130px; height: 130px; background: linear-gradient(45deg, #8B0000, #B22222, #DC143C);"></div>
-            </div>
-            <div class="preset-info">
-                <h2 class="preset-title">High-Eccentricity Asteroid</h2>
-                <p class="preset-description">An asteroid with a highly elliptical orbit that brings it very close to Earth at periapsis.</p>
-                <div class="preset-params">
-                    <div class="param-row">
-                        <span class="param-name">Semi-Major Axis:</span>
-                        <span class="param-value">25,000 km</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Eccentricity:</span>
-                        <span class="param-value">0.75</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Inclination:</span>
-                        <span class="param-value">10°</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Mass:</span>
-                        <span class="param-value">2.5×10⁷ kg</span>
-                    </div>
-                </div>
-                <button class="select-btn" onclick="selectPreset('highEccentricity')">Select This Asteroid</button>
-            </div>
-        </div>
-        
-        <!-- Circular Orbit Asteroid -->
-        <div class="preset-card safe">
-            <div class="preset-visual">
-                <div class="asteroid-3d" style="width: 90px; height: 90px; background: linear-gradient(45deg, #2E8B57, #3CB371, #66CDAA);"></div>
-            </div>
-            <div class="preset-info">
-                <h2 class="preset-title">Circular Orbit Asteroid</h2>
-                <p class="preset-description">A stable asteroid in a nearly circular orbit with minimal eccentricity.</p>
-                <div class="preset-params">
-                    <div class="param-row">
-                        <span class="param-name">Semi-Major Axis:</span>
-                        <span class="param-value">30,000 km</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Eccentricity:</span>
-                        <span class="param-value">0.05</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Inclination:</span>
-                        <span class="param-value">5°</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Mass:</span>
-                        <span class="param-value">1.0×10⁶ kg</span>
-                    </div>
-                </div>
-                <button class="select-btn" onclick="selectPreset('circularOrbit')">Select This Asteroid</button>
-            </div>
-        </div>
-        
-        <!-- Inclined Orbit Asteroid -->
-        <div class="preset-card warning">
-            <div class="preset-visual">
-                <div class="asteroid-3d" style="width: 110px; height: 110px; background: linear-gradient(45deg, #4B0082, #8A2BE2, #9370DB);"></div>
-            </div>
-            <div class="preset-info">
-                <h2 class="preset-title">Inclined Orbit Asteroid</h2>
-                <p class="preset-description">An asteroid with a highly inclined orbit relative to Earth's orbital plane.</p>
-                <div class="preset-params">
-                    <div class="param-row">
-                        <span class="param-name">Semi-Major Axis:</span>
-                        <span class="param-value">20,000 km</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Eccentricity:</span>
-                        <span class="param-value">0.3</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Inclination:</span>
-                        <span class="param-value">60°</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Mass:</span>
-                        <span class="param-value">8.0×10⁶ kg</span>
-                    </div>
-                </div>
-                <button class="select-btn" onclick="selectPreset('inclinedOrbit')">Select This Asteroid</button>
-            </div>
-        </div>
-        
-        <!-- Distant Asteroid -->
-        <div class="preset-card safe">
-            <div class="preset-visual">
-                <div class="asteroid-3d" style="width: 80px; height: 80px; background: linear-gradient(45deg, #2F4F4F, #708090, #778899);"></div>
-            </div>
-            <div class="preset-info">
-                <h2 class="preset-title">Distant Asteroid</h2>
-                <p class="preset-description">A far-orbiting asteroid with minimal risk of Earth impact.</p>
-                <div class="preset-params">
-                    <div class="param-row">
-                        <span class="param-name">Semi-Major Axis:</span>
-                        <span class="param-value">50,000 km</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Eccentricity:</span>
-                        <span class="param-value">0.2</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Inclination:</span>
-                        <span class="param-value">15°</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Mass:</span>
-                        <span class="param-value">3.0×10⁶ kg</span>
-                    </div>
-                </div>
-                <button class="select-btn" onclick="selectPreset('distantAsteroid')">Select This Asteroid</button>
-            </div>
-        </div>
-        
-        <!-- Impact Trajectory -->
-        <div class="preset-card danger">
-            <div class="preset-visual">
-                <div class="asteroid-3d" style="width: 140px; height: 140px; background: linear-gradient(45deg, #8B0000, #FF0000, #FF4500);"></div>
-            </div>
-            <div class="preset-info">
-                <h2 class="preset-title">Impact Trajectory</h2>
-                <p class="preset-description">A high-risk asteroid on a collision course with Earth. Deflection required!</p>
-                <div class="preset-params">
-                    <div class="param-row">
-                        <span class="param-name">Semi-Major Axis:</span>
-                        <span class="param-value">12,000 km</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Eccentricity:</span>
-                        <span class="param-value">0.6</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Inclination:</span>
-                        <span class="param-value">8°</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">Mass:</span>
-                        <span class="param-value">1.5×10⁷ kg</span>
-                    </div>
-                </div>
-                <button class="select-btn" onclick="selectPreset('impactTrajectory')">Select This Asteroid</button>
-            </div>
-        </div>
+    <div class="presets-container" id="asteroids-container">
+        <!-- Asteroids will be dynamically inserted here -->
     </div>
     
     <footer>
-        <p>Asteroid Simulation Project &copy; 2023 | Select a preset to load it in the simulation</p>
+        <p>NASA Asteroid Data &copy; 2023 | All orbital parameters based on real astronomical data</p>
     </footer>
     
     <script>
-        // Preset configurations
-        const presets = {
-            nearEarth: {
-                a: 15000,
-                e: 0.45,
-                inc: 25,
-                raan: 0,
-                argp: 0,
-                M0: 0,
-                mass: 6,
-                velocity: 11
+        // Sample asteroid data
+        const asteroids = [
+            {
+                name: "Ceres",
+                description: "The largest object in the asteroid belt between Mars and Jupiter. It's classified as a dwarf planet.",
+                a: 2.766,
+                e: 0.076,
+                inc: 10.59,
+                diameter: 939.4,
+                mass: 9.393e20,
+                velocity: 17.9,
+                mission: "Dawn",
+                hazard: "none"
             },
-            highEccentricity: {
-                a: 25000,
-                e: 0.75,
-                inc: 10,
-                raan: 0,
-                argp: 0,
-                M0: 0,
-                mass: 7.4,
-                velocity: 13
+            {
+                name: "Vesta",
+                description: "One of the largest asteroids in the Solar System, visited by NASA's Dawn spacecraft.",
+                a: 2.362,
+                e: 0.089,
+                inc: 7.14,
+                diameter: 525.4,
+                mass: 2.590e20,
+                velocity: 19.3,
+                mission: "Dawn",
+                hazard: "low"
             },
-            circularOrbit: {
-                a: 30000,
-                e: 0.05,
-                inc: 5,
-                raan: 0,
-                argp: 0,
-                M0: 0,
-                mass: 6,
-                velocity: 10
+            {
+                name: "Bennu",
+                description: "Near-Earth asteroid studied by NASA's OSIRIS-REx mission. It has a chance of impacting Earth in the late 22nd century.",
+                a: 1.126,
+                e: 0.204,
+                inc: 6.03,
+                diameter: 0.49,
+                mass: 7.329e10,
+                velocity: 28.1,
+                mission: "OSIRIS-REx",
+                hazard: "high"
             },
-            inclinedOrbit: {
-                a: 20000,
-                e: 0.3,
-                inc: 60,
-                raan: 0,
-                argp: 0,
-                M0: 0,
-                mass: 6.9,
-                velocity: 12
+            {
+                name: "Ryugu",
+                description: "Near-Earth asteroid visited by Japan's Hayabusa2 mission. It's a carbonaceous asteroid rich in organic materials.",
+                a: 1.190,
+                e: 0.190,
+                inc: 5.88,
+                diameter: 0.87,
+                mass: 4.500e11,
+                velocity: 27.4,
+                mission: "Hayabusa2",
+                hazard: "medium"
             },
-            distantAsteroid: {
-                a: 50000,
-                e: 0.2,
-                inc: 15,
-                raan: 0,
-                argp: 0,
-                M0: 0,
-                mass: 6.5,
-                velocity: 8
+            {
+                name: "Eros",
+                description: "The first near-Earth asteroid to be orbited by a spacecraft (NEAR Shoemaker). It's an elongated S-type asteroid.",
+                a: 1.458,
+                e: 0.223,
+                inc: 10.83,
+                diameter: 16.84,
+                mass: 6.687e15,
+                velocity: 24.4,
+                mission: "NEAR",
+                hazard: "low"
             },
-            impactTrajectory: {
-                a: 12000,
-                e: 0.6,
-                inc: 8,
-                raan: 40,
-                argp: 20,
-                M0: 0,
-                mass: 7.2,
-                velocity: 15
+            {
+                name: "Itokawa",
+                description: "A near-Earth asteroid visited by Japan's Hayabusa mission. It has a rubble pile structure.",
+                a: 1.324,
+                e: 0.280,
+                inc: 1.62,
+                diameter: 0.33,
+                mass: 3.510e10,
+                velocity: 25.4,
+                mission: "Hayabusa",
+                hazard: "low"
             }
-        };
+        ];
 
-        function selectPreset(presetId) {
-            const preset = presets[presetId];
-            if (preset) {
-                // Store the preset in localStorage
-                localStorage.setItem('selectedPreset', JSON.stringify(preset));
+        // Function to generate asteroid cards
+        function generateAsteroidCards() {
+            const container = document.getElementById('asteroids-container');
+            
+            asteroids.forEach(asteroid => {
+                // Scale the asteroid visualization based on actual size
+                let size = asteroid.diameter * 10;
+                size = Math.max(size, 50);
+                size = Math.min(size, 150);
                 
-                // Redirect to main simulation page
-                window.location.href = '/';
+                const card = document.createElement('div');
+                card.className = 'preset-card';
                 
-                // Show confirmation
-                alert(`Preset "${presetId}" selected! Loading simulation...`);
-            }
+                card.innerHTML = `
+                    <div class="preset-visual">
+                        <div class="asteroid-3d" style="width: ${size}px; height: ${size}px;"></div>
+                        
+                        <!-- Mission badge -->
+                        <div class="mission-badge">${asteroid.mission}</div>
+                        
+                        <!-- Hazard indicator -->
+                        <div class="hazard-indicator hazard-${asteroid.hazard}">
+                            ${asteroid.hazard === 'high' ? '⚠️ HIGH RISK' : 
+                              asteroid.hazard === 'medium' ? '⚠️ MEDIUM RISK' : 
+                              asteroid.hazard === 'low' ? 'LOW RISK' : 'NO RISK'}
+                        </div>
+                    </div>
+                    <div class="preset-info">
+                        <h2 class="preset-title">${asteroid.name}</h2>
+                        <p class="preset-description">${asteroid.description}</p>
+                        <div class="preset-params">
+                            <div class="param-row">
+                                <span class="param-name">Semi-Major Axis:</span>
+                                <span class="param-value">${asteroid.a.toFixed(3)} AU</span>
+                            </div>
+                            <div class="param-row">
+                                <span class="param-name">Eccentricity:</span>
+                                <span class="param-value">${asteroid.e.toFixed(3)}</span>
+                            </div>
+                            <div class="param-row">
+                                <span class="param-name">Inclination:</span>
+                                <span class="param-value">${asteroid.inc.toFixed(2)}°</span>
+                            </div>
+                            <div class="param-row">
+                                <span class="param-name">Diameter:</span>
+                                <span class="param-value">${asteroid.diameter.toFixed(2)} km</span>
+                            </div>
+                            <div class="param-row">
+                                <span class="param-name">Mass:</span>
+                                <span class="param-value">${asteroid.mass.toExponential(1)} kg</span>
+                            </div>
+                            <div class="param-row">
+                                <span class="param-name">Relative Velocity:</span>
+                                <span class="param-value">${asteroid.velocity.toFixed(1)} km/s</span>
+                            </div>
+                        </div>
+                            <button class="select-btn" onclick="selectPreset(${JSON.stringify(asteroid).replace(/"/g, '&quot;')})">
+        Simulate ${asteroid.name.split(' ')[0]}
+    </button>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // Function to handle preset selection
+        function selectPreset(asteroid) {
+            // Convert AU to km for the simulation (1 AU = 149,597,870.7 km)
+            const auToKm = 149597870.7;
+            
+            const presetData = {
+                name: asteroid.name,
+                a: Math.round(asteroid.a * auToKm / 1000), // Convert to thousands of km for simulation
+                e: asteroid.e,
+                inc: asteroid.inc,
+                raan: 0,  // Default values for simulation
+                argp: 0,
+                M0: 0,
+                mass: Math.log10(asteroid.mass), // Convert to logarithmic scale for slider
+                velocity: Math.min(72, Math.max(11, asteroid.velocity)), // Clamp to slider range
+                diameter: asteroid.diameter,
+                originalData: asteroid
+            };
+            
+            // Store the preset in localStorage
+            localStorage.setItem('selectedPreset', JSON.stringify(presetData));
+            
+            // Redirect to main simulation page
+             window.location.href = '/';
+            
+            // Show confirmation
+            alert(`Loading ${asteroid.name} into simulation...`);
         }
         
-        // Add some interactive effects
+        // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
+            generateAsteroidCards();
+            
+            // Add event listeners to buttons
+            // Add event listeners to buttons - FIXED VERSION
+document.querySelectorAll('.select-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        // Get the asteroid data from the card instead of parsing JSON
+        const card = this.closest('.preset-card');
+        const name = card.querySelector('.preset-title').textContent;
+        const params = card.querySelectorAll('.param-value');
+        
+        // Extract values from the displayed parameters
+        const a = parseFloat(params[0].textContent.replace(' AU', ''));
+        const e = parseFloat(params[1].textContent);
+        const inc = parseFloat(params[2].textContent.replace('°', ''));
+        const diameter = parseFloat(params[3].textContent.replace(' km', ''));
+        const massText = params[4].textContent;
+        const mass = parseFloat(massText.split('e')[0]) * Math.pow(10, parseInt(massText.split('e')[1]));
+        const velocity = parseFloat(params[5].textContent.replace(' km/s', ''));
+        
+        const asteroidData = {
+            name: name,
+            a: a,
+            e: e,
+            inc: inc,
+            diameter: diameter,
+            mass: mass,
+            velocity: velocity
+        };
+        
+        selectPreset(asteroidData);
+    });
+});
+            
+            // Add some interactive effects
             const cards = document.querySelectorAll('.preset-card');
             
             cards.forEach(card => {

@@ -151,14 +151,21 @@
       scene.add(light);
       scene.add(new THREE.AmbientLight(0x404040, 0.8));
 
-      // Earth placeholder (radius ~6371 km)
-      const earthGeom = new THREE.SphereGeometry(6371, 64, 64);
-      const earthTexture = new THREE.TextureLoader().load(
-        "https://upload.wikimedia.org/wikipedia/commons/c/c3/Solarsystemscope_texture_2k_earth_daymap.jpg"
-      );
-      const earthMat = new THREE.MeshPhongMaterial({ map: earthTexture });
-      const earth = new THREE.Mesh(earthGeom, earthMat);
-      scene.add(earth);
+// Earth with axial tilt
+const earthGeom = new THREE.SphereGeometry(6371, 64, 64);
+const earthTexture = new THREE.TextureLoader().load(
+  "https://upload.wikimedia.org/wikipedia/commons/c/c3/Solarsystemscope_texture_2k_earth_daymap.jpg"
+);
+const earthMat = new THREE.MeshPhongMaterial({ map: earthTexture });
+const earth = new THREE.Mesh(earthGeom, earthMat);
+
+// Set axial tilt (23.5 degrees converted to radians)
+earth.rotation.z = 23.5 * Math.PI / 180;
+
+// Additional rotation to position specific continents
+earth.rotation.y = Math.PI * 0.2;
+
+scene.add(earth);
 
       // Asteroid
       let asteroid = createAsteroid(1e6); // Default mass of 1e6 kg
@@ -739,6 +746,7 @@ window.getElements = function() {
           deflectAsteroid();
         }
       }
+      const EARTH_ROTATION_RATE = (2 * Math.PI) / (24 * 3600); // radians per second (full rotation in 24 hours)
 
       // Animation state
       let running = true;
@@ -749,6 +757,7 @@ window.getElements = function() {
       // Animation loop
       function animate() {
         requestAnimationFrame(animate);
+        
         const t = performance.now() / 1000;
         const { a, e, i, Omega, omega, M0, mass, timeScale } = getElements();
         
@@ -767,7 +776,8 @@ window.getElements = function() {
           simTime += deltaT * scaledTime;
         }
         lastT = t;
-        
+        // REALISTIC EARTH ROTATION
+  earth.rotation.y = (earth.rotation.y + 0.0005 * deltaT * scaledTime) % (2 * Math.PI);
         // Asteroid mean motion n = sqrt(mu / a^3)
         const nAst = Math.sqrt(muEarth / (a * a * a));
         // Only apply simTime to the time evolution, not to M0
